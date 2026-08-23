@@ -1,14 +1,15 @@
 from fastapi import Header, HTTPException
+import os
 
 
 # =========================================================
 # LOGIN CREDENTIALS
 # =========================================================
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
-AUTH_TOKEN = "admin-token"
+AUTH_TOKEN = os.getenv("AUTH_TOKEN", "admin-token")
 
 
 # =========================================================

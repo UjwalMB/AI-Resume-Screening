@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 
-function Login() {
+function Signup() {
 
   const navigate = useNavigate();
 
@@ -14,6 +14,8 @@ function Login() {
   const [username, setUsername] = useState("");
 
   const [password, setPassword] = useState("");
+
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +30,7 @@ function Login() {
 
     const token = localStorage.getItem("token");
 
-    if (token === "admin-token") {
+    if (token) {
 
       navigate("/", {
         replace: true
@@ -40,10 +42,10 @@ function Login() {
 
 
   // =====================================================
-  // LOGIN
+  // SIGNUP
   // =====================================================
 
-  const handleLogin = async (event) => {
+  const handleSignup = async (event) => {
 
     event.preventDefault();
 
@@ -56,7 +58,7 @@ function Login() {
     if (!username.trim()) {
 
       setError(
-        "Please enter your username."
+        "Please enter a username."
       );
 
       return;
@@ -65,7 +67,25 @@ function Login() {
     if (!password) {
 
       setError(
-        "Please enter your password."
+        "Please enter a password."
+      );
+
+      return;
+    }
+
+    if (password.length < 4) {
+
+      setError(
+        "Password must be at least 4 characters."
+      );
+
+      return;
+    }
+
+    if (password !== confirmPassword) {
+
+      setError(
+        "Passwords do not match."
       );
 
       return;
@@ -74,13 +94,13 @@ function Login() {
     setLoading(true);
 
     // ---------------------------------------------------
-    // LOGIN REQUEST
+    // SIGNUP REQUEST
     // ---------------------------------------------------
 
     try {
 
       const response = await axios.post(
-        "http://127.0.0.1:8000/auth/login",
+        "http://127.0.0.1:8000/auth/signup",
         {
           username: username.trim(),
           password: password
@@ -88,7 +108,7 @@ function Login() {
       );
 
       console.log(
-        "Login response:",
+        "Signup response:",
         response.data
       );
 
@@ -131,12 +151,7 @@ function Login() {
         );
 
         console.log(
-          "Login successful"
-        );
-
-        console.log(
-          "Token:",
-          response.data.token
+          "Signup successful"
         );
 
         // -----------------------------------------------
@@ -150,7 +165,7 @@ function Login() {
       } else {
 
         setError(
-          "Invalid login response from server."
+          "Invalid signup response from server."
         );
 
       }
@@ -158,18 +173,13 @@ function Login() {
     } catch (error) {
 
       console.error(
-        "Login error:",
+        "Signup error:",
         error
-      );
-
-      console.error(
-        "Backend response:",
-        error.response?.data
       );
 
       setError(
         error.response?.data?.detail ||
-        "Unable to login. Please try again."
+        "Unable to sign up. Please try again."
       );
 
     } finally {
@@ -198,13 +208,13 @@ function Login() {
         </h1>
 
         <p>
-          Recruiter Login
+          Create Account
         </p>
 
 
-        {/* LOGIN FORM */}
+        {/* SIGNUP FORM */}
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSignup}>
 
           {/* USERNAME */}
 
@@ -214,7 +224,7 @@ function Login() {
 
           <input
             type="text"
-            placeholder="Enter username"
+            placeholder="Choose a username"
             value={username}
             onChange={(event) => {
 
@@ -237,7 +247,7 @@ function Login() {
 
           <input
             type="password"
-            placeholder="Enter password"
+            placeholder="Create a password"
             value={password}
             onChange={(event) => {
 
@@ -248,7 +258,30 @@ function Login() {
               setError("");
 
             }}
-            autoComplete="current-password"
+            autoComplete="new-password"
+          />
+
+
+          {/* CONFIRM PASSWORD */}
+
+          <label>
+            Confirm Password
+          </label>
+
+          <input
+            type="password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(event) => {
+
+              setConfirmPassword(
+                event.target.value
+              );
+
+              setError("");
+
+            }}
+            autoComplete="new-password"
           />
 
 
@@ -263,7 +296,7 @@ function Login() {
           )}
 
 
-          {/* LOGIN BUTTON */}
+          {/* SIGNUP BUTTON */}
 
           <button
             type="submit"
@@ -271,19 +304,20 @@ function Login() {
           >
 
             {loading
-              ? "Logging in..."
-              : "Login"}
+              ? "Creating account..."
+              : "Sign Up"}
 
           </button>
 
         </form>
 
-        {/* SIGNUP LINK */}
+
+        {/* LOGIN LINK */}
 
         <p className="auth-switch">
-          Don't have an account?{" "}
-          <Link to="/signup">
-            Sign Up
+          Already have an account?{" "}
+          <Link to="/login">
+            Login
           </Link>
         </p>
 
@@ -296,4 +330,4 @@ function Login() {
 }
 
 
-export default Login;
+export default Signup;

@@ -991,6 +991,28 @@ button {
   transform: translateY(-1px);
 }
 
+.auth-switch {
+  margin-top: 22px;
+
+  text-align: center;
+
+  color: #718096;
+
+  font-size: 14px;
+}
+
+.auth-switch a {
+  color: #2563eb;
+
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
 
 /* =========================================================
    MOBILE

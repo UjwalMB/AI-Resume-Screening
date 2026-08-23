@@ -1,0 +1,90 @@
+# =========================================================
+# AI RESUME SCREENING - DOCKER COMPOSE
+# =========================================================
+
+services:
+
+  # ---------------------------------------------------------
+  # POSTGRESQL DATABASE
+  # ---------------------------------------------------------
+
+  db:
+    image: postgres:16-alpine
+    container_name: resume_screening_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-resume_screening}
+      POSTGRES_USER: ${POSTGRES_USER:-ujwal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ujwal} -d ${POSTGRES_DB:-resume_screening}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # ---------------------------------------------------------
+  # FASTAPI BACKEND
+  # ---------------------------------------------------------
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resume_screening_backend
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: "host=${POSTGRES_HOST:-db} port=5432 dbname=${POSTGRES_DB:-resume_screening} user=${POSTGRES_USER:-ujwal} password=${POSTGRES_PASSWORD:-password}"
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      AUTH_TOKEN: ${AUTH_TOKEN:-admin-token}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173}
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - uploads_data:/app/uploads
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  # ---------------------------------------------------------
+  # REACT FRONTEND
+  # ---------------------------------------------------------
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: resume_screening_frontend
+    restart: unless-stopped
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
+
+# ---------------------------------------------------------
+# VOLUMES
+# ---------------------------------------------------------
+
+volumes:
+  postgres_data:
+  uploads_data:

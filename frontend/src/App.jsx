@@ -6,6 +6,7 @@ import Candidates from "./pages/Candidates";
 import CandidateDetails from "./pages/CandidateDetails";
 import Jobs from "./pages/Jobs";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,6 +26,14 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+
+        {/* SIGNUP */}
+
+        <Route
+          path="/signup"
+          element={<Signup />}
         />
 
 

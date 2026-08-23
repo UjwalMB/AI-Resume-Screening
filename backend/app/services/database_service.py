@@ -1,16 +1,6 @@
-import psycopg
 from psycopg.types.json import Jsonb
 
-
-# =========================================================
-# DATABASE CONNECTION
-# =========================================================
-
-DATABASE_URL = "postgresql://localhost/resume_screening"
-
-
-def get_connection():
-    return psycopg.connect(DATABASE_URL)
+from app.database import get_connection
 
 
 # =========================================================
