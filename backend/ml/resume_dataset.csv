@@ -1,0 +1,101 @@
+resume_text,label
+"Python FastAPI SQL pandas NumPy machine learning REST API backend development",SHORTLIST
+"Python Django Flask PostgreSQL REST API Docker Git backend developer",SHORTLIST
+"Python pandas NumPy scikit-learn machine learning statistics data analysis SQL",SHORTLIST
+"Python TensorFlow scikit-learn NLP machine learning data preprocessing",SHORTLIST
+"Python FastAPI PostgreSQL Docker AWS REST APIs authentication backend",SHORTLIST
+"Java Spring Boot MySQL REST API microservices Docker Git backend development",SHORTLIST
+"JavaScript React Node.js Express MongoDB HTML CSS full stack development",SHORTLIST
+"React JavaScript TypeScript Redux Node.js REST API frontend development",SHORTLIST
+"Python SQL Power BI pandas data analysis statistics visualization",SHORTLIST
+"Python machine learning deep learning TensorFlow PyTorch NLP computer vision",SHORTLIST
+"Python SQL pandas NumPy data science machine learning scikit-learn",SHORTLIST
+"FastAPI Python SQLAlchemy PostgreSQL JWT REST API backend developer",SHORTLIST
+"Python Flask MySQL HTML CSS JavaScript web application development",SHORTLIST
+"Java Spring Hibernate MySQL REST API Git Maven backend engineer",SHORTLIST
+"React TypeScript Node.js PostgreSQL Docker full stack developer",SHORTLIST
+"Python AWS Docker Kubernetes FastAPI CI CD cloud backend",SHORTLIST
+"Python pandas SQL Excel statistics data visualization data analyst",SHORTLIST
+"Machine learning Python scikit-learn pandas NumPy model training evaluation",SHORTLIST
+"Python NLP transformers machine learning text classification data preprocessing",SHORTLIST
+"JavaScript React Node Express MongoDB REST API full stack developer",SHORTLIST
+"Python Django PostgreSQL Redis Celery REST API backend developer",SHORTLIST
+"Python FastAPI SQL Docker GitHub Actions backend software engineer",SHORTLIST
+"React TypeScript Next.js Node.js API PostgreSQL frontend full stack",SHORTLIST
+"Python data science SQL pandas NumPy matplotlib seaborn machine learning",SHORTLIST
+"Java Spring Boot PostgreSQL Docker AWS REST microservices developer",SHORTLIST
+"Python machine learning SQL feature engineering model evaluation scikit-learn",SHORTLIST
+"Node.js React JavaScript MongoDB Express REST API web developer",SHORTLIST
+"Python Flask REST API SQLite SQL HTML CSS JavaScript developer",SHORTLIST
+"Python TensorFlow Keras deep learning computer vision machine learning",SHORTLIST
+"Python pandas NumPy SQL Tableau Power BI data analyst",SHORTLIST
+"FastAPI Python PostgreSQL Docker AWS Kubernetes backend engineer",SHORTLIST
+"React TypeScript JavaScript HTML CSS REST APIs frontend engineer",SHORTLIST
+"Python scikit-learn pandas NLP TF-IDF classification machine learning",SHORTLIST
+"Java Spring Boot Hibernate MySQL REST API backend development",SHORTLIST
+"Python Django REST Framework PostgreSQL authentication API development",SHORTLIST
+"Node.js Express React MongoDB JavaScript full stack web development",SHORTLIST
+"Python SQL data analysis statistics pandas NumPy business intelligence",SHORTLIST
+"Python PyTorch machine learning deep learning model deployment",SHORTLIST
+"React Next.js TypeScript Node.js PostgreSQL full stack application",SHORTLIST
+"Python FastAPI SQLAlchemy PostgreSQL Docker REST API microservices",SHORTLIST
+"Java Spring Cloud Kafka Docker microservices REST API developer",SHORTLIST
+"Python pandas SQL machine learning data cleaning feature engineering",SHORTLIST
+"JavaScript React Redux Node.js Express REST API Git full stack",SHORTLIST
+"Python AWS Lambda S3 FastAPI Docker cloud application development",SHORTLIST
+"Python NLP text classification TF-IDF scikit-learn pandas machine learning",SHORTLIST
+"Java Spring Boot REST API PostgreSQL Docker Kubernetes backend",SHORTLIST
+"React TypeScript Node.js MongoDB REST API frontend developer",SHORTLIST
+"Python SQL pandas NumPy Power BI data analytics machine learning",SHORTLIST
+"FastAPI Python JWT PostgreSQL Docker Git REST backend development",SHORTLIST
+"Python scikit-learn TensorFlow pandas NumPy machine learning data science",SHORTLIST
+"Digital marketing SEO social media content marketing Google Ads campaign management",REJECT
+"Graphic design Adobe Photoshop Illustrator branding typography visual design",REJECT
+"Accounting Tally GST bookkeeping financial reporting auditing taxation",REJECT
+"Civil engineering AutoCAD construction structural engineering site management",REJECT
+"Mechanical engineering CAD manufacturing production thermodynamics machine design",REJECT
+"Human resources recruitment payroll employee relations talent acquisition HR policies",REJECT
+"Hotel management hospitality food service tourism customer service event management",REJECT
+"Content writing journalism proofreading editing copywriting publishing",REJECT
+"Electrical engineering circuits power systems PLC electrical maintenance instrumentation",REJECT
+"Fashion design garment production textiles apparel merchandising styling",REJECT
+"Biotechnology laboratory research microbiology genetics cell culture biology",REJECT
+"Pharmacy drug formulation pharmacology clinical pharmacy medication dispensing",REJECT
+"Architecture AutoCAD Revit building design interior planning construction drawings",REJECT
+"Teaching classroom management lesson planning education curriculum assessment",REJECT
+"Sales business development customer relationship management lead generation negotiation",REJECT
+"Legal research contracts litigation compliance corporate law documentation",REJECT
+"Nursing patient care clinical assessment hospital procedures medical records",REJECT
+"Automotive engineering vehicle maintenance engine diagnostics mechanical systems",REJECT
+"Photography Lightroom Photoshop studio lighting portrait photography photo editing",REJECT
+"Public relations media relations press releases communications event management",REJECT
+"Supply chain logistics inventory procurement warehouse operations transportation",REJECT
+"Banking loan processing customer service financial products branch operations",REJECT
+"Restaurant management food preparation hospitality inventory customer service",REJECT
+"Film production video editing cinematography script writing production management",REJECT
+"Real estate property sales leasing client management property valuation",REJECT
+"Interior design space planning furniture selection AutoCAD materials decoration",REJECT
+"Chemical engineering process design plant operations chemical safety laboratory",REJECT
+"Agriculture crop production soil science irrigation farm management agronomy",REJECT
+"Fitness trainer exercise planning nutrition coaching gym management personal training",REJECT
+"Travel tourism itinerary planning ticketing hotel booking customer service",REJECT
+"Insurance claims processing policy administration underwriting customer service",REJECT
+"Event management wedding planning vendor coordination budgeting hospitality",REJECT
+"Journalism news reporting interviewing editing media writing newspaper production",REJECT
+"Fashion merchandising retail sales apparel buying inventory visual merchandising",REJECT
+"Graphic artist illustration Photoshop Illustrator logo design creative branding",REJECT
+"Accounting audit tax GST payroll bookkeeping Excel financial statements",REJECT
+"Recruitment HR sourcing interviews onboarding payroll employee engagement",REJECT
+"Civil construction site supervision AutoCAD surveying building materials",REJECT
+"Mechanical production manufacturing CNC machining quality control maintenance",REJECT
+"Electrical maintenance power distribution wiring industrial equipment safety",REJECT
+"Marketing SEO email campaigns social media analytics advertising",REJECT
+"Hospital administration patient records scheduling healthcare operations",REJECT
+"Pharmacy clinical trials drug safety medication counseling pharmacology",REJECT
+"Biology molecular biology genetics laboratory experiments research",REJECT
+"Architecture Revit AutoCAD structural drawings building planning design",REJECT
+"Teacher mathematics classroom instruction curriculum development student assessment",REJECT
+"Sales retail customer service product promotion negotiation business development",REJECT
+"Legal contracts compliance legal research case documentation litigation",REJECT
+"Hospitality hotel front office reservations housekeeping guest services tourism",REJECT
+"Photography event photography camera operation lighting photo editing",REJECT

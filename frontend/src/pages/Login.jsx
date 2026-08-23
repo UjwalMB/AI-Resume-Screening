@@ -2,26 +2,33 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 function Login() {
 
   const navigate = useNavigate();
 
+  // =====================================================
+  // STATE
+  // =====================================================
+
   const [username, setUsername] = useState("");
+
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
 
   // =====================================================
-  // CHECK IF ALREADY LOGGED IN
+  // CHECK EXISTING LOGIN
   // =====================================================
 
   useEffect(() => {
 
     const token = localStorage.getItem("token");
 
-    if (token) {
+    if (token === "admin-token") {
 
       navigate("/", {
         replace: true
@@ -42,10 +49,9 @@ function Login() {
 
     setError("");
 
-
-    // ===================================================
+    // ---------------------------------------------------
     // VALIDATION
-    // ===================================================
+    // ---------------------------------------------------
 
     if (!username.trim()) {
 
@@ -56,7 +62,6 @@ function Login() {
       return;
     }
 
-
     if (!password) {
 
       setError(
@@ -66,30 +71,21 @@ function Login() {
       return;
     }
 
-
     setLoading(true);
 
-
-    // ===================================================
-    // API LOGIN
-    // ===================================================
+    // ---------------------------------------------------
+    // LOGIN REQUEST
+    // ---------------------------------------------------
 
     try {
 
       const response = await axios.post(
-
         "http://127.0.0.1:8000/auth/login",
-
         {
-          username:
-            username.trim(),
-
-          password:
-            password
+          username: username.trim(),
+          password: password
         }
-
       );
-
 
       console.log(
         "Login response:",
@@ -97,32 +93,15 @@ function Login() {
       );
 
 
-      // =================================================
-      // LOGIN SUCCESS
-      // =================================================
+      // -------------------------------------------------
+      // CHECK RESPONSE
+      // -------------------------------------------------
 
-      if (response.data.authenticated) {
-
-
-        // -----------------------------------------------
-        // SAVE AUTHENTICATION STATUS
-        // -----------------------------------------------
-
-        localStorage.setItem(
-          "authenticated",
-          "true"
-        );
-
-
-        // -----------------------------------------------
-        // SAVE USERNAME
-        // -----------------------------------------------
-
-        localStorage.setItem(
-          "username",
-          response.data.username
-        );
-
+      if (
+        response.data &&
+        response.data.authenticated === true &&
+        response.data.token
+      ) {
 
         // -----------------------------------------------
         // SAVE TOKEN
@@ -133,12 +112,32 @@ function Login() {
           response.data.token
         );
 
+        // -----------------------------------------------
+        // SAVE AUTH STATUS
+        // -----------------------------------------------
 
-        console.log(
-          "Token saved:",
-          response.data.token
+        localStorage.setItem(
+          "authenticated",
+          "true"
         );
 
+        // -----------------------------------------------
+        // SAVE USERNAME
+        // -----------------------------------------------
+
+        localStorage.setItem(
+          "username",
+          response.data.username
+        );
+
+        console.log(
+          "Login successful"
+        );
+
+        console.log(
+          "Token:",
+          response.data.token
+        );
 
         // -----------------------------------------------
         // GO TO DASHBOARD
@@ -148,33 +147,29 @@ function Login() {
           replace: true
         });
 
-      }
+      } else {
 
+        setError(
+          "Invalid login response from server."
+        );
+
+      }
 
     } catch (error) {
 
       console.error(
-        "Login failed:",
+        "Login error:",
         error
       );
-
 
       console.error(
         "Backend response:",
         error.response?.data
       );
 
-
-      // -----------------------------------------------
-      // DISPLAY BACKEND ERROR
-      // -----------------------------------------------
-
       setError(
-
         error.response?.data?.detail ||
-
-        "Invalid username or password."
-
+        "Unable to login. Please try again."
       );
 
     } finally {
@@ -196,27 +191,20 @@ function Login() {
 
       <div className="login-card">
 
-
-        {/* =================================================
-            TITLE
-        ================================================= */}
+        {/* TITLE */}
 
         <h1>
           AI Resume Screening
         </h1>
-
 
         <p>
           Recruiter Login
         </p>
 
 
-        {/* =================================================
-            LOGIN FORM
-        ================================================= */}
+        {/* LOGIN FORM */}
 
         <form onSubmit={handleLogin}>
-
 
           {/* USERNAME */}
 
@@ -224,15 +212,10 @@ function Login() {
             Username
           </label>
 
-
           <input
-
             type="text"
-
             placeholder="Enter username"
-
             value={username}
-
             onChange={(event) => {
 
               setUsername(
@@ -242,9 +225,7 @@ function Login() {
               setError("");
 
             }}
-
             autoComplete="username"
-
           />
 
 
@@ -254,15 +235,10 @@ function Login() {
             Password
           </label>
 
-
           <input
-
             type="password"
-
             placeholder="Enter password"
-
             value={password}
-
             onChange={(event) => {
 
               setPassword(
@@ -272,9 +248,7 @@ function Login() {
               setError("");
 
             }}
-
             autoComplete="current-password"
-
           />
 
 
@@ -292,11 +266,8 @@ function Login() {
           {/* LOGIN BUTTON */}
 
           <button
-
             type="submit"
-
             disabled={loading}
-
           >
 
             {loading
@@ -305,9 +276,7 @@ function Login() {
 
           </button>
 
-
         </form>
-
 
       </div>
 

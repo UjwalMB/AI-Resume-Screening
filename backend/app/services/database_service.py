@@ -100,7 +100,9 @@ def save_evaluation(
     score,
     match_percentage,
     summary,
-    decision
+    decision,
+    ml_prediction,
+    ml_confidence
 ):
 
     connection = get_connection()
@@ -117,9 +119,13 @@ def save_evaluation(
                     score,
                     match_percentage,
                     summary,
-                    decision
+                    decision,
+                    ml_prediction,
+                    ml_confidence
                 )
                 VALUES (
+                    %s,
+                    %s,
                     %s,
                     %s,
                     %s,
@@ -135,7 +141,9 @@ def save_evaluation(
                     score,
                     match_percentage,
                     summary,
-                    decision
+                    decision,
+                    ml_prediction,
+                    ml_confidence
                 )
             )
 
@@ -148,7 +156,6 @@ def save_evaluation(
     finally:
 
         connection.close()
-
 
 # =========================================================
 # SAVE SKILL GAP

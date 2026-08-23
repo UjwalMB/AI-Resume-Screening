@@ -1078,3 +1078,532 @@ button {
   }
 
 }
+/* =========================================================
+   CANDIDATE DETAILS PAGE
+========================================================= */
+
+.candidate-details-page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  padding: 30px 40px;
+  box-sizing: border-box;
+  color: #1f2937;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.candidate-details-header {
+  max-width: 1200px;
+  margin: 0 auto 25px;
+}
+
+.candidate-details-header h1 {
+  margin: 18px 0 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.back-button {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.back-button:hover {
+  color: #1d4ed8;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.candidate-details-card {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 25px;
+  box-sizing: border-box;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.candidate-details-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #111827;
+}
+
+.candidate-details-card h3 {
+  margin-top: 25px;
+  margin-bottom: 12px;
+  font-size: 17px;
+  color: #374151;
+}
+
+
+/* =========================================================
+   CANDIDATE INFORMATION
+========================================================= */
+
+.candidate-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.candidate-info-grid div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.candidate-info-grid strong {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.candidate-info-grid p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   SCREENING RESULTS
+========================================================= */
+
+.screening-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.result-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  text-align: center;
+}
+
+.result-box h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.result-number {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+
+/* =========================================================
+   DECISION BADGE
+========================================================= */
+
+.decision-badge {
+  display: inline-block;
+  margin: 5px 0 0;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+/* SHORTLIST */
+
+.decision-badge.shortlist {
+  background: #dcfce7;
+  color: #166534;
+}
+
+
+/* REJECT */
+
+.decision-badge.reject {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+
+/* REVIEW */
+
+.decision-badge.review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.summary-text {
+  margin: 0;
+  line-height: 1.7;
+  color: #4b5563;
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   SKILLS
+========================================================= */
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+
+/* NORMAL SKILL */
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* MATCHED SKILL */
+
+.skill-tag.matched {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+
+/* MISSING SKILL */
+
+.skill-tag.missing {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+
+/* =========================================================
+   RECOMMENDATIONS
+========================================================= */
+
+.recommendations-list {
+  margin: 0;
+  padding-left: 22px;
+  color: #4b5563;
+}
+
+.recommendations-list li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.candidate-actions {
+  max-width: 1200px;
+  margin: 25px auto;
+}
+
+.candidate-actions button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.candidate-actions button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   LOADING / ERROR
+========================================================= */
+
+.candidate-details-page > .candidate-details-card h2 {
+  color: #111827;
+}
+
+.candidate-details-page > .candidate-details-card p {
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .candidate-details-page {
+    padding: 25px;
+  }
+
+  .candidate-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .screening-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .candidate-details-page {
+    padding: 15px;
+  }
+
+  .candidate-details-card {
+    padding: 18px;
+    border-radius: 10px;
+  }
+
+  .candidate-details-header h1 {
+    font-size: 25px;
+  }
+
+  .candidate-info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .screening-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .result-number {
+    font-size: 27px;
+  }
+
+  .candidate-details-card h2 {
+    font-size: 19px;
+  }
+
+}
+/* =========================================================
+   VIEW CANDIDATE BUTTON
+========================================================= */
+
+.view-candidate-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.view-candidate-button {
+  padding: 13px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.view-candidate-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   SKILL GAP ANALYSIS
+========================================================= */
+
+.skill-gap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 20px;
+}
+
+.skill-gap-box {
+  padding: 24px;
+
+  border-radius: 14px;
+
+  box-sizing: border-box;
+}
+
+.skill-gap-box.matched {
+  background: linear-gradient(
+    180deg,
+    #f2fdf5,
+    #ecfdf3
+  );
+
+  border: 1px solid #bbf7d0;
+}
+
+.skill-gap-box.missing {
+  background: linear-gradient(
+    180deg,
+    #fff5f5,
+    #fef2f2
+  );
+
+  border: 1px solid #fecaca;
+}
+
+.skill-gap-box h3 {
+  margin: 0 0 16px;
+
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.skill-gap-box.matched h3 {
+  color: #166534;
+}
+
+.skill-gap-box.missing h3 {
+  color: #991b1b;
+}
+
+
+/* --- The UL list --- */
+
+.skill-gap-box ul {
+  list-style: none;
+
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+
+  gap: 9px;
+}
+
+.skill-gap-box li {
+  position: relative;
+
+  padding: 11px 15px 11px 42px;
+
+  background: #ffffff;
+
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 650;
+
+  color: #374151;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.skill-gap-box li:hover {
+  transform: translateX(3px);
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+
+/* Check / cross marker */
+
+.skill-gap-box li::before {
+  content: "";
+
+  position: absolute;
+
+  left: 13px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 19px;
+  height: 19px;
+
+  border-radius: 50%;
+}
+
+
+.skill-gap-box.matched li::before {
+  background:
+    #dcfce7
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23166534' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E")
+    center / 12px no-repeat;
+}
+
+
+.skill-gap-box.missing li::before {
+  background:
+    #fee2e2
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23991b1b' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M18 6L6 18M6 6l12 12'/%3E%3C/svg%3E")
+    center / 11px no-repeat;
+}
+
+
+.skill-gap-box p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+}
+
+
+@media (max-width: 900px) {
+
+  .skill-gap-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

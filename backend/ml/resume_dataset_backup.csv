@@ -1,0 +1,21 @@
+resume_text,label
+"Python FastAPI SQL pandas machine learning data science",SHORTLIST
+"Python Django Flask SQL pandas NumPy",SHORTLIST
+"Java Spring Boot MySQL REST API",SHORTLIST
+"React JavaScript HTML CSS Node.js",SHORTLIST
+"Python machine learning scikit-learn pandas NumPy",SHORTLIST
+"Data science Python SQL statistics machine learning",SHORTLIST
+"FastAPI Python PostgreSQL Docker AWS",SHORTLIST
+"JavaScript React Node.js MongoDB Express",SHORTLIST
+"Python SQL Excel data analysis pandas",SHORTLIST
+"Machine learning Python TensorFlow scikit-learn",SHORTLIST
+"Marketing sales customer service communication",REJECT
+"Graphic design Photoshop Illustrator branding",REJECT
+"Accounting finance Tally GST bookkeeping",REJECT
+"Mechanical engineering CAD manufacturing",REJECT
+"Civil engineering construction AutoCAD",REJECT
+"Digital marketing SEO social media advertising",REJECT
+"HR recruitment payroll employee relations",REJECT
+"Content writing journalism editing proofreading",REJECT
+"Electrical engineering circuits power systems",REJECT
+"Hotel management cooking hospitality tourism",REJECT

@@ -7,6 +7,7 @@ import CandidateDetails from "./pages/CandidateDetails";
 import Jobs from "./pages/Jobs";
 import Login from "./pages/Login";
 
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 

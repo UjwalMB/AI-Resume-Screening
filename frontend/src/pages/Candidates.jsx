@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
 
+import "./Candidates.css";
+
+
 function Candidates() {
+
+  // =====================================================
+  // STATE
+  // =====================================================
+
   const [candidates, setCandidates] = useState([]);
   const [jobs, setJobs] = useState([]);
 
@@ -10,11 +18,15 @@ function Candidates() {
   const [jobFilter, setJobFilter] = useState("all");
   const [decisionFilter, setDecisionFilter] =
     useState("all");
+
   const [sortOrder, setSortOrder] =
     useState("none");
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
 
   // =====================================================
@@ -22,12 +34,16 @@ function Candidates() {
   // =====================================================
 
   useEffect(() => {
+
     fetchCandidates();
+
   }, []);
 
 
   const fetchCandidates = async () => {
+
     try {
+
       setLoading(true);
       setError("");
 
@@ -35,7 +51,11 @@ function Candidates() {
         "/candidates"
       );
 
-      setCandidates(response.data);
+      setCandidates(
+        Array.isArray(response.data)
+          ? response.data
+          : []
+      );
 
     } catch (error) {
 
@@ -54,6 +74,7 @@ function Candidates() {
       setLoading(false);
 
     }
+
   };
 
 
@@ -62,18 +83,25 @@ function Candidates() {
   // =====================================================
 
   useEffect(() => {
+
     fetchJobs();
+
   }, []);
 
 
   const fetchJobs = async () => {
+
     try {
 
       const response = await api.get(
         "/jobs"
       );
 
-      setJobs(response.data);
+      setJobs(
+        Array.isArray(response.data)
+          ? response.data
+          : []
+      );
 
     } catch (error) {
 
@@ -83,95 +111,220 @@ function Candidates() {
       );
 
     }
+
   };
 
 
   // =====================================================
-  // FILTER + SORT
+  // FILTER + SORT CANDIDATES
   // =====================================================
 
-  const filteredCandidates = candidates
-    .filter((candidate) => {
+  const filteredCandidates = useMemo(() => {
 
-      const searchText =
-        search.toLowerCase();
-
-
-      // SEARCH
-
-      const matchesSearch =
-        String(
-          candidate.candidate_id || ""
-        )
-          .toLowerCase()
-          .includes(searchText) ||
-
-        String(
-          candidate.filename || ""
-        )
-          .toLowerCase()
-          .includes(searchText) ||
-
-        String(
-          candidate.decision || ""
-        )
-          .toLowerCase()
-          .includes(searchText);
+    const searchText =
+      search.trim().toLowerCase();
 
 
-      // JOB FILTER
+    const filtered = candidates.filter(
+      (candidate) => {
 
-      const matchesJob =
-        jobFilter === "all" ||
-        String(candidate.job_id) ===
-          String(jobFilter);
+        // -----------------------------------------------
+        // SEARCH
+        // -----------------------------------------------
+
+        const matchesSearch =
+
+          String(
+            candidate.candidate_id ?? ""
+          )
+            .toLowerCase()
+            .includes(searchText)
+
+          ||
+
+          String(
+            candidate.filename ?? ""
+          )
+            .toLowerCase()
+            .includes(searchText)
+
+          ||
+
+          String(
+            candidate.decision ?? ""
+          )
+            .toLowerCase()
+            .includes(searchText);
 
 
-      // DECISION FILTER
+        // -----------------------------------------------
+        // JOB FILTER
+        // -----------------------------------------------
 
-      const matchesDecision =
-        decisionFilter === "all" ||
-        candidate.decision
-          ?.toLowerCase() ===
-          decisionFilter.toLowerCase();
+        const matchesJob =
+
+          jobFilter === "all"
+
+          ||
+
+          String(
+            candidate.job_id ?? ""
+          ) === String(jobFilter);
 
 
-      return (
-        matchesSearch &&
-        matchesJob &&
-        matchesDecision
+        // -----------------------------------------------
+        // DECISION FILTER
+        // -----------------------------------------------
+
+        const candidateDecision =
+          String(
+            candidate.decision ?? "REVIEW"
+          )
+            .toLowerCase()
+            .trim();
+
+
+        const matchesDecision =
+
+          decisionFilter === "all"
+
+          ||
+
+          candidateDecision ===
+            decisionFilter.toLowerCase();
+
+
+        return (
+          matchesSearch &&
+          matchesJob &&
+          matchesDecision
+        );
+
+      }
+    );
+
+
+    // ===================================================
+    // SORT
+    // ===================================================
+
+    if (sortOrder === "high") {
+
+      filtered.sort(
+        (a, b) =>
+          Number(b.score ?? 0) -
+          Number(a.score ?? 0)
       );
 
-    })
-    .sort((a, b) => {
-
-      // HIGHEST SCORE FIRST
-
-      if (sortOrder === "high") {
-
-        return (
-          Number(b.score || 0) -
-          Number(a.score || 0)
-        );
-
-      }
+    }
 
 
-      // LOWEST SCORE FIRST
+    if (sortOrder === "low") {
 
-      if (sortOrder === "low") {
+      filtered.sort(
+        (a, b) =>
+          Number(a.score ?? 0) -
+          Number(b.score ?? 0)
+      );
 
-        return (
-          Number(a.score || 0) -
-          Number(b.score || 0)
-        );
-
-      }
+    }
 
 
-      return 0;
+    return filtered;
 
-    });
+  }, [
+    candidates,
+    search,
+    jobFilter,
+    decisionFilter,
+    sortOrder
+  ]);
+
+
+  // =====================================================
+  // STATISTICS
+  // =====================================================
+
+  const totalCandidates =
+    candidates.length;
+
+
+  const shortlisted =
+    candidates.filter(
+      (candidate) =>
+        String(candidate.decision ?? "")
+          .toLowerCase() === "shortlist"
+    ).length;
+
+
+  const rejected =
+    candidates.filter(
+      (candidate) =>
+        String(candidate.decision ?? "")
+          .toLowerCase() === "reject"
+    ).length;
+
+
+  const review =
+    candidates.filter(
+      (candidate) =>
+        String(candidate.decision ?? "")
+          .toLowerCase() === "review"
+    ).length;
+
+
+  // =====================================================
+  // DECISION CLASS
+  // =====================================================
+
+  const getDecisionClass = (decision) => {
+
+    const value =
+      String(
+        decision || "REVIEW"
+      )
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-");
+
+
+    if (
+      value === "shortlist" ||
+      value === "shortlisted"
+    ) {
+
+      return "shortlisted";
+
+    }
+
+
+    if (
+      value === "reject" ||
+      value === "rejected"
+    ) {
+
+      return "rejected";
+
+    }
+
+
+    return "review";
+
+  };
+
+
+  // =====================================================
+  // RESET FILTERS
+  // =====================================================
+
+  const resetFilters = () => {
+
+    setSearch("");
+    setJobFilter("all");
+    setDecisionFilter("all");
+    setSortOrder("none");
+
+  };
 
 
   // =====================================================
@@ -179,144 +332,263 @@ function Candidates() {
   // =====================================================
 
   return (
-    <div className="dashboard">
+
+    <div className="candidates-page">
 
 
       {/* =================================================
           PAGE HEADER
       ================================================= */}
 
-      <h1>
-        Candidates
-      </h1>
+      <div className="candidates-header">
 
-      <p>
-        View and filter all candidates screened
-        by the AI system.
-      </p>
+        <h1>
+          Candidates
+        </h1>
+
+        <p>
+          View, search and analyze candidates
+          screened by the AI Resume Screening System.
+        </p>
+
+      </div>
 
 
       {/* =================================================
-          FILTERS
+          STATISTICS
       ================================================= */}
 
-      <div className="upload-card">
+      {!loading && !error && (
+
+        <div className="candidate-stats">
+
+
+          {/* TOTAL */}
+
+          <div className="stat-card">
+
+            <span>
+              Total Candidates
+            </span>
+
+            <strong>
+              {totalCandidates}
+            </strong>
+
+          </div>
+
+
+          {/* SHORTLISTED */}
+
+          <div className="stat-card">
+
+            <span>
+              Shortlisted
+            </span>
+
+            <strong>
+              {shortlisted}
+            </strong>
+
+          </div>
+
+
+          {/* REVIEW */}
+
+          <div className="stat-card">
+
+            <span>
+              Under Review
+            </span>
+
+            <strong>
+              {review}
+            </strong>
+
+          </div>
+
+
+          {/* REJECTED */}
+
+          <div className="stat-card">
+
+            <span>
+              Rejected
+            </span>
+
+            <strong>
+              {rejected}
+            </strong>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* =================================================
+          FILTER CARD
+      ================================================= */}
+
+      <div className="candidate-filters">
 
         <h2>
           Candidate Filters
         </h2>
 
 
-        {/* SEARCH */}
-
-        <label>
-          Search
-        </label>
-
-        <input
-          type="text"
-          placeholder="Search by ID, resume or decision..."
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-          className="search-input"
-        />
+        <div className="filter-grid">
 
 
-        {/* JOB FILTER */}
+          {/* SEARCH */}
 
-        <label>
-          Filter by Job
-        </label>
+          <div className="filter-group">
 
-        <select
-          value={jobFilter}
-          onChange={(event) =>
-            setJobFilter(event.target.value)
-          }
-        >
+            <label>
+              Search Candidate
+            </label>
 
-          <option value="all">
-            All Jobs
-          </option>
+            <input
 
-          {jobs.map((job) => (
+              type="text"
 
-            <option
-              key={job.id}
-              value={job.id}
+              placeholder="Search by ID, resume or decision..."
+
+              value={search}
+
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+
+            />
+
+          </div>
+
+
+          {/* JOB */}
+
+          <div className="filter-group">
+
+            <label>
+              Filter by Job
+            </label>
+
+            <select
+
+              value={jobFilter}
+
+              onChange={(event) =>
+                setJobFilter(
+                  event.target.value
+                )
+              }
+
             >
-              #{job.id} - {job.title}
-            </option>
 
-          ))}
-
-        </select>
+              <option value="all">
+                All Jobs
+              </option>
 
 
-        {/* DECISION FILTER */}
+              {jobs.map((job) => (
 
-        <label>
-          Filter by Decision
-        </label>
+                <option
+                  key={job.id}
+                  value={job.id}
+                >
 
-        <select
-          value={decisionFilter}
-          onChange={(event) =>
-            setDecisionFilter(
-              event.target.value
-            )
-          }
-        >
+                  #{job.id} - {job.title}
 
-          <option value="all">
-            All Decisions
-          </option>
+                </option>
 
-          <option value="shortlist">
-            Shortlisted
-          </option>
+              ))}
 
-          <option value="review">
-            Review
-          </option>
+            </select>
 
-          <option value="reject">
-            Rejected
-          </option>
-
-        </select>
+          </div>
 
 
-        {/* SCORE SORT */}
+          {/* DECISION */}
 
-        <label>
-          Sort by Score
-        </label>
+          <div className="filter-group">
 
-        <select
-          value={sortOrder}
-          onChange={(event) =>
-            setSortOrder(
-              event.target.value
-            )
-          }
-        >
+            <label>
+              Decision
+            </label>
 
-          <option value="none">
-            Default
-          </option>
+            <select
 
-          <option value="high">
-            Highest Score First
-          </option>
+              value={decisionFilter}
 
-          <option value="low">
-            Lowest Score First
-          </option>
+              onChange={(event) =>
+                setDecisionFilter(
+                  event.target.value
+                )
+              }
 
-        </select>
+            >
+
+              <option value="all">
+                All Decisions
+              </option>
+
+              <option value="shortlist">
+                Shortlisted
+              </option>
+
+              <option value="review">
+                Review
+              </option>
+
+              <option value="reject">
+                Rejected
+              </option>
+
+            </select>
+
+          </div>
+
+
+          {/* SORT */}
+
+          <div className="filter-group">
+
+            <label>
+              Sort by Score
+            </label>
+
+            <select
+
+              value={sortOrder}
+
+              onChange={(event) =>
+                setSortOrder(
+                  event.target.value
+                )
+              }
+
+            >
+
+              <option value="none">
+                Default
+              </option>
+
+              <option value="high">
+                Highest Score
+              </option>
+
+              <option value="low">
+                Lowest Score
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
 
       </div>
 
@@ -327,30 +599,11 @@ function Candidates() {
 
       {error && (
 
-        <p className="error">
+        <div className="candidates-error">
+
           {error}
-        </p>
 
-      )}
-
-
-      {/* =================================================
-          RESULTS COUNT
-      ================================================= */}
-
-      {!loading && (
-
-        <p>
-          Showing{" "}
-          <strong>
-            {filteredCandidates.length}
-          </strong>{" "}
-          of{" "}
-          <strong>
-            {candidates.length}
-          </strong>{" "}
-          candidates.
-        </p>
+        </div>
 
       )}
 
@@ -359,165 +612,288 @@ function Candidates() {
           LOADING
       ================================================= */}
 
-      {loading ? (
+      {loading && (
 
-        <p>
-          Loading candidates...
-        </p>
+        <div className="candidates-empty">
 
-      ) : filteredCandidates.length === 0 ? (
-
-        <p>
-          No candidates match your filters.
-        </p>
-
-      ) : (
-
-        /* =================================================
-           CANDIDATE TABLE
-        ================================================= */
-
-        <div className="candidate-table">
-
-          <table>
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  Candidate ID
-                </th>
-
-                <th>
-                  Resume
-                </th>
-
-                <th>
-                  Job ID
-                </th>
-
-                <th>
-                  Score
-                </th>
-
-                <th>
-                  Job Match
-                </th>
-
-                <th>
-                  Decision
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              {filteredCandidates.map(
-                (candidate) => (
-
-                  <tr
-                    key={
-                      candidate.candidate_id
-                    }
-                  >
-
-                    {/* CANDIDATE ID */}
-
-                    <td>
-
-                      <Link
-                        to={`/candidates/${candidate.candidate_id}`}
-                      >
-                        #
-                        {
-                          candidate.candidate_id
-                        }
-                      </Link>
-
-                    </td>
-
-
-                    {/* RESUME */}
-
-                    <td>
-                      {
-                        candidate.filename ||
-                        "N/A"
-                      }
-                    </td>
-
-
-                    {/* JOB */}
-
-                    <td>
-                      {candidate.job_id
-                        ? `#${candidate.job_id}`
-                        : "N/A"}
-                    </td>
-
-
-                    {/* SCORE */}
-
-                    <td>
-                      {
-                        candidate.score ??
-                        0
-                      }/100
-                    </td>
-
-
-                    {/* JOB MATCH */}
-
-                    <td>
-                      {
-                        candidate.match_percentage ??
-                        0
-                      }%
-                    </td>
-
-
-                    {/* DECISION */}
-
-                    <td>
-
-                      <strong
-                        className={`decision ${
-                          candidate.decision
-                            ?.toLowerCase()
-                            .replace(
-                              /\s+/g,
-                              "-"
-                            ) ||
-                          "review"
-                        }`}
-                      >
-                        {
-                          candidate.decision ||
-                          "REVIEW"
-                        }
-                      </strong>
-
-                    </td>
-
-                  </tr>
-
-                )
-              )}
-
-            </tbody>
-
-          </table>
+          <p>
+            Loading candidates...
+          </p>
 
         </div>
 
       )}
 
+
+      {/* =================================================
+          RESULT COUNT
+      ================================================= */}
+
+      {!loading && !error && (
+
+        <div className="candidates-result-count">
+
+          Showing{" "}
+
+          <strong>
+            {filteredCandidates.length}
+          </strong>
+
+          {" "}of{" "}
+
+          <strong>
+            {totalCandidates}
+          </strong>
+
+          {" "}candidates
+
+        </div>
+
+      )}
+
+
+      {/* =================================================
+          EMPTY RESULTS
+      ================================================= */}
+
+      {!loading &&
+        !error &&
+        filteredCandidates.length === 0 && (
+
+          <div className="candidates-empty">
+
+            <h3>
+              No candidates found
+            </h3>
+
+            <p>
+              No candidates match your
+              current filters.
+            </p>
+
+            <button
+              type="button"
+              onClick={resetFilters}
+            >
+              Clear Filters
+            </button>
+
+          </div>
+
+        )}
+
+
+      {/* =================================================
+          CANDIDATE TABLE
+      ================================================= */}
+
+      {!loading &&
+        !error &&
+        filteredCandidates.length > 0 && (
+
+          <div className="candidates-table-card">
+
+            <div className="candidates-table-wrapper">
+
+              <table className="candidates-table">
+
+                {/* =================================================
+                    TABLE HEADER
+                ================================================= */}
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+                      Candidate ID
+                    </th>
+
+                    <th>
+                      Resume
+                    </th>
+
+                    <th>
+                      Job ID
+                    </th>
+
+                    <th>
+                      Score
+                    </th>
+
+                    <th>
+                      Job Match
+                    </th>
+
+                    <th>
+                      Decision
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+
+                {/* =================================================
+                    TABLE BODY
+                ================================================= */}
+
+                <tbody>
+
+                  {filteredCandidates.map(
+                    (candidate) => (
+
+                      <tr
+                        key={
+                          candidate.candidate_id
+                        }
+                      >
+
+
+                        {/* -----------------------------------------
+                            CANDIDATE ID
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          <Link
+
+                            to={`/candidates/${candidate.candidate_id}`}
+
+                            className="candidate-id-link"
+
+                          >
+
+                            #
+                            {
+                              candidate.candidate_id
+                            }
+
+                          </Link>
+
+                        </td>
+
+
+                        {/* -----------------------------------------
+                            RESUME
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          <div
+                            className="resume-name"
+                            title={
+                              candidate.filename ||
+                              "N/A"
+                            }
+                          >
+
+                            {
+                              candidate.filename ||
+                              "N/A"
+                            }
+
+                          </div>
+
+                        </td>
+
+
+                        {/* -----------------------------------------
+                            JOB
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          {candidate.job_id
+                            ? `#${candidate.job_id}`
+                            : "N/A"}
+
+                        </td>
+
+
+                        {/* -----------------------------------------
+                            SCORE
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          <span className="score-value">
+
+                            {
+                              Number(
+                                candidate.score ?? 0
+                              )
+                            }
+
+                            /100
+
+                          </span>
+
+                        </td>
+
+
+                        {/* -----------------------------------------
+                            MATCH
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          <span className="match-value">
+
+                            {
+                              Number(
+                                candidate.match_percentage ?? 0
+                              )
+                            }
+
+                            %
+
+                          </span>
+
+                        </td>
+
+
+                        {/* -----------------------------------------
+                            DECISION
+                        ----------------------------------------- */}
+
+                        <td>
+
+                          <span
+                            className={`decision ${getDecisionClass(
+                              candidate.decision
+                            )}`}
+                          >
+
+                            {
+                              candidate.decision ||
+                              "REVIEW"
+                            }
+
+                          </span>
+
+                        </td>
+
+                      </tr>
+
+                    )
+                  )}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        )}
+
     </div>
+
   );
+
 }
+
 
 export default Candidates;

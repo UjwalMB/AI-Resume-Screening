@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import axios from "axios";
+import { useParams, Link } from "react-router-dom";
+import api from "../api";
+import "./CandidateDetails.css";
 
 function CandidateDetails() {
+
   const { candidateId } = useParams();
 
   const [candidate, setCandidate] = useState(null);
@@ -10,64 +12,82 @@ function CandidateDetails() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCandidate();
-  }, [candidateId]);
 
-  const fetchCandidate = async () => {
-    try {
-      setLoading(true);
-      setError("");
+    const fetchCandidate = async () => {
 
-      const response = await axios.get(
-        `http://127.0.0.1:8000/candidates/${candidateId}`
-      );
+      try {
 
-      if (response.data.message === "Candidate not found") {
-        setError("Candidate not found.");
-        return;
+        setLoading(true);
+        setError("");
+
+        const response = await api.get(
+          `/candidates/${candidateId}`
+        );
+
+        console.log(
+          "Candidate details:",
+          response.data
+        );
+
+        setCandidate(response.data);
+
+      } catch (error) {
+
+        console.error(
+          "Failed to load candidate:",
+          error
+        );
+
+        setError(
+          error.response?.data?.detail ||
+          "Unable to load candidate."
+        );
+
+      } finally {
+
+        setLoading(false);
+
       }
 
-      setCandidate(response.data);
+    };
 
-    } catch (error) {
-      console.error(
-        "Failed to load candidate:",
-        error
-      );
+    fetchCandidate();
 
-      setError(
-        "Unable to load candidate details. Please check the backend."
-      );
+  }, [candidateId]);
 
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // =====================================================
-  // LOADING
-  // =====================================================
 
   if (loading) {
     return (
-      <div className="dashboard">
-        <p>Loading candidate details...</p>
+      <div className="candidate-details-page">
+        <p>Loading candidate...</p>
       </div>
     );
   }
 
-  // =====================================================
-  // ERROR
-  // =====================================================
 
   if (error) {
     return (
-      <div className="dashboard">
+      <div className="candidate-details-page">
 
-        <h1>Candidate Details</h1>
-
-        <p className="error">
+        <div className="error">
           {error}
+        </div>
+
+        <Link to="/candidates">
+          ← Back to Candidates
+        </Link>
+
+      </div>
+    );
+  }
+
+
+  if (!candidate) {
+    return (
+      <div className="candidate-details-page">
+
+        <p>
+          Candidate not found.
         </p>
 
         <Link to="/candidates">
@@ -78,358 +98,188 @@ function CandidateDetails() {
     );
   }
 
-  // =====================================================
-  // SKILL GAP DATA
-  // =====================================================
-
-  const matchedSkills =
-    candidate?.skill_gap?.matched_skills || [];
-
-  const missingSkills =
-    candidate?.skill_gap?.missing_skills || [];
-
-  const recommendations =
-    candidate?.skill_gap?.recommendations || [];
-
-  // =====================================================
-  // RECOMMENDATIONS
-  // =====================================================
-
-  let recommendationList = [];
-
-  if (Array.isArray(recommendations)) {
-    recommendationList = recommendations;
-
-  } else if (typeof recommendations === "string") {
-    recommendationList = [
-      {
-        skill: "AI Recommendation",
-        recommendation: recommendations
-      }
-    ];
-  }
-
-  // =====================================================
-  // REQUIRED JOB SKILLS
-  // =====================================================
-
-  let requiredSkills = [];
-
-  if (Array.isArray(candidate?.required_skills)) {
-
-    requiredSkills = candidate.required_skills;
-
-  } else if (
-    typeof candidate?.required_skills === "string"
-  ) {
-
-    requiredSkills = candidate.required_skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter((skill) => skill);
-
-  }
-
-  // =====================================================
-  // PAGE
-  // =====================================================
 
   return (
-    <div className="dashboard">
+    <div className="candidate-details-page">
 
-      {/* =================================================
-          BACK
-      ================================================= */}
-
-      <Link to="/candidates">
+      <Link
+        to="/candidates"
+        className="back-link"
+      >
         ← Back to Candidates
       </Link>
 
-      {/* =================================================
-          HEADER
-      ================================================= */}
 
-      <h1>
-        Candidate Details
-      </h1>
+      <div className="candidate-header">
 
-      <p>
-        Detailed AI screening information for this candidate.
-      </p>
+        <div>
 
-      {/* =================================================
-          BASIC INFORMATION
-      ================================================= */}
+          <h1>
+            Candidate #{candidate.candidate_id}
+          </h1>
 
-      <div className="result-card">
+          <p>
+            {candidate.filename || "Resume"}
+          </p>
 
-        <h2>
-          Candidate #{candidate.candidate_id}
-        </h2>
+        </div>
 
-        <p className="candidate-id">
-          <strong>Resume:</strong>{" "}
-          {candidate.filename || "N/A"}
-        </p>
+        <strong>
+          {candidate.decision || "REVIEW"}
+        </strong>
 
-        <p className="candidate-id">
-          <strong>Resume ID:</strong>{" "}
-          {candidate.resume_id || "N/A"}
-        </p>
+      </div>
 
-        <p className="candidate-id">
-          <strong>Evaluation ID:</strong>{" "}
-          {candidate.evaluation_id || "N/A"}
-        </p>
 
-        {/* =================================================
-            JOB INFORMATION
-        ================================================= */}
+      <div className="candidate-grid">
 
-        <div className="summary-section">
+        <div className="candidate-card">
 
-          <h3>
-            💼 Job Information
-          </h3>
+          <h2>Screening Result</h2>
 
-          <div className="result-box">
+          <p>
+            <strong>Score:</strong>{" "}
+            {candidate.score ?? 0}/100
+          </p>
 
-            <span>
-              Job Title
-            </span>
+          <p>
+            <strong>Job Match:</strong>{" "}
+            {candidate.match_percentage ?? 0}%
+          </p>
 
-            <strong>
-              {candidate.job_title || "N/A"}
-            </strong>
+          <p>
+            <strong>Decision:</strong>{" "}
+            {candidate.decision || "REVIEW"}
+          </p>
 
-          </div>
+        </div>
 
-          <h3>
-            Required Skills
-          </h3>
 
-          {requiredSkills.length > 0 ? (
+        <div className="candidate-card">
 
-            <div className="skill-list">
+          <h2>Job Information</h2>
 
-              {requiredSkills.map(
+          <p>
+            <strong>Job ID:</strong>{" "}
+            {candidate.job_id ?? "N/A"}
+          </p>
+
+          <p>
+            <strong>Job Title:</strong>{" "}
+            {candidate.job_title || "N/A"}
+          </p>
+
+        </div>
+
+
+        <div className="candidate-card">
+
+          <h2>Summary</h2>
+
+          <p>
+            {candidate.summary ||
+              "No summary available."}
+          </p>
+
+        </div>
+
+
+        <div className="candidate-card">
+
+          <h2>Required Skills</h2>
+
+          {candidate.required_skills?.length > 0 ? (
+
+            <ul>
+
+              {candidate.required_skills.map(
                 (skill, index) => (
-
-                  <span
-                    className="skill"
-                    key={`${skill}-${index}`}
-                  >
+                  <li key={index}>
                     {skill}
-                  </span>
-
+                  </li>
                 )
               )}
 
-            </div>
+            </ul>
 
           ) : (
 
-            <p>
-              No required skills available.
-            </p>
+            <p>No required skills available.</p>
 
           )}
 
         </div>
 
-        {/* =================================================
-            SCORE / MATCH / DECISION
-        ================================================= */}
 
-        <div className="result-top">
+        <div className="candidate-card">
 
-          {/* SCORE */}
+          <h2>Matched Skills</h2>
 
-          <div className="result-box">
+          {candidate.skill_gap?.matched_skills?.length > 0 ? (
 
-            <span>
-              Resume Score
-            </span>
+            <ul>
 
-            <strong>
-              {candidate.score ?? 0}/100
-            </strong>
-
-            <div className="progress">
-
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${candidate.score ?? 0}%`
-                }}
-              />
-
-            </div>
-
-          </div>
-
-          {/* JOB MATCH */}
-
-          <div className="result-box">
-
-            <span>
-              Job Match
-            </span>
-
-            <strong>
-              {candidate.match_percentage ?? 0}%
-            </strong>
-
-            <div className="progress">
-
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${candidate.match_percentage ?? 0}%`
-                }}
-              />
-
-            </div>
-
-          </div>
-
-          {/* DECISION */}
-
-          <div className="result-box">
-
-            <span>
-              Decision
-            </span>
-
-            <strong
-              className={`decision ${
-                candidate.decision
-                  ?.toLowerCase()
-                  .replace(/\s+/g, "-") || "review"
-              }`}
-            >
-              {candidate.decision || "REVIEW"}
-            </strong>
-
-          </div>
-
-        </div>
-
-        {/* =================================================
-            MATCHED SKILLS
-        ================================================= */}
-
-        <div className="skills-section">
-
-          <h3>
-            ✓ Matched Skills
-          </h3>
-
-          {matchedSkills.length > 0 ? (
-
-            <div className="skill-list">
-
-              {matchedSkills.map(
+              {candidate.skill_gap.matched_skills.map(
                 (skill, index) => (
-
-                  <span
-                    className="skill matched"
-                    key={`${skill}-${index}`}
-                  >
-                    ✓ {skill}
-                  </span>
-
+                  <li key={index}>
+                    {skill}
+                  </li>
                 )
               )}
 
-            </div>
+            </ul>
 
           ) : (
 
-            <p>
-              No matched skills found.
-            </p>
+            <p>No matched skills.</p>
 
           )}
 
         </div>
 
-        {/* =================================================
-            MISSING SKILLS
-        ================================================= */}
 
-        <div className="skills-section">
+        <div className="candidate-card">
 
-          <h3>
-            ⚠ Skill Gaps
-          </h3>
+          <h2>Missing Skills</h2>
 
-          {missingSkills.length > 0 ? (
+          {candidate.skill_gap?.missing_skills?.length > 0 ? (
 
-            <div className="skill-list">
+            <ul>
 
-              {missingSkills.map(
+              {candidate.skill_gap.missing_skills.map(
                 (skill, index) => (
-
-                  <span
-                    className="skill missing"
-                    key={`${skill}-${index}`}
-                  >
-                    ✗ {skill}
-                  </span>
-
+                  <li key={index}>
+                    {skill}
+                  </li>
                 )
               )}
 
-            </div>
+            </ul>
 
           ) : (
 
-            <p>
-              No major skill gaps found.
-            </p>
+            <p>No missing skills.</p>
 
           )}
 
         </div>
 
-        {/* =================================================
-            AI RECOMMENDATIONS
-        ================================================= */}
 
-        <div className="recommendations">
+        <div className="candidate-card">
 
-          <h3>
-            🤖 AI Recommendations
-          </h3>
+          <h2>Recommendations</h2>
 
-          {recommendationList.length > 0 ? (
+          {candidate.skill_gap?.recommendations ? (
 
-            <div className="recommendation-list">
-
-              {recommendationList.map(
-                (item, index) => (
-
-                  <div
-                    className="recommendation"
-                    key={index}
-                  >
-
-                    <strong>
-                      {item.skill || "Recommendation"}
-                    </strong>
-
-                    <p>
-                      {item.recommendation ||
-                        String(item)}
-                    </p>
-
-                  </div>
-
-                )
-              )}
-
-            </div>
+            <p>
+              {Array.isArray(
+                candidate.skill_gap.recommendations
+              )
+                ? candidate.skill_gap.recommendations.join(
+                    ", "
+                  )
+                : candidate.skill_gap.recommendations}
+            </p>
 
           ) : (
 
@@ -440,45 +290,6 @@ function CandidateDetails() {
           )}
 
         </div>
-
-        {/* =================================================
-            SUMMARY
-        ================================================= */}
-
-        <div className="summary-section">
-
-          <h3>
-            AI Summary
-          </h3>
-
-          <p>
-            {candidate.summary ||
-              "No summary available."}
-          </p>
-
-        </div>
-
-        {/* =================================================
-            SCREENING DATE
-        ================================================= */}
-
-        {candidate.created_at && (
-
-          <div className="summary-section">
-
-            <h3>
-              Screening Date
-            </h3>
-
-            <p>
-              {new Date(
-                candidate.created_at
-              ).toLocaleString()}
-            </p>
-
-          </div>
-
-        )}
 
       </div>
 

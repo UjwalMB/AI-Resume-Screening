@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+
 from app.database import get_connection
 from app.auth import require_authentication
 
@@ -31,7 +32,9 @@ def get_candidates(
                 e.job_id,
                 e.score,
                 e.match_percentage,
-                e.decision
+                e.decision,
+                e.ml_prediction,
+                e.ml_confidence
 
             FROM candidates c
 
@@ -51,34 +54,87 @@ def get_candidates(
 
         for row in rows:
 
-            candidates.append({
-                "candidate_id": row[0],
+            decision = (
+                row[5]
+                if row[5]
+                else "REVIEW"
+            )
 
-                "filename": (
+            ml_prediction = (
+                row[6]
+                if row[6]
+                else "REVIEW"
+            )
+
+            ml_confidence = (
+                float(row[7])
+                if row[7] is not None
+                else 0
+            )
+
+            # =================================================
+            # COMPARE EXISTING SYSTEM + ML SYSTEM
+            # =================================================
+
+            systems_agree = (
+                decision.upper()
+                ==
+                ml_prediction.upper()
+            )
+
+            candidates.append({
+
+                # ---------------------------------------------
+                # BASIC INFORMATION
+                # ---------------------------------------------
+
+                "candidate_id":
+                    row[0],
+
+                "filename":
                     row[1]
                     if row[1]
-                    else "N/A"
-                ),
+                    else "N/A",
 
-                "job_id": row[2],
+                "job_id":
+                    row[2],
 
-                "score": (
+
+                # ---------------------------------------------
+                # EXISTING SCREENING SYSTEM
+                # ---------------------------------------------
+
+                "score":
                     row[3]
                     if row[3] is not None
-                    else 0
-                ),
+                    else 0,
 
-                "match_percentage": (
+                "match_percentage":
                     float(row[4])
                     if row[4] is not None
-                    else 0
-                ),
+                    else 0,
 
-                "decision": (
-                    row[5]
-                    if row[5]
-                    else "REVIEW"
-                )
+                "decision":
+                    decision,
+
+
+                # ---------------------------------------------
+                # MACHINE LEARNING SYSTEM
+                # ---------------------------------------------
+
+                "ml_prediction":
+                    ml_prediction,
+
+                "ml_confidence":
+                    ml_confidence,
+
+
+                # ---------------------------------------------
+                # SYSTEM COMPARISON
+                # ---------------------------------------------
+
+                "systems_agree":
+                    systems_agree
             })
 
         return candidates
@@ -124,6 +180,9 @@ def get_candidate(
                 e.summary,
                 e.decision,
                 e.created_at,
+
+                e.ml_prediction,
+                e.ml_confidence,
 
                 s.id AS skill_gap_id,
                 s.matched_skills,
@@ -194,17 +253,17 @@ def get_candidate(
 
         matched_skills = []
 
-        if row[13]:
+        if row[15]:
 
-            if isinstance(row[13], list):
+            if isinstance(row[15], list):
 
-                matched_skills = row[13]
+                matched_skills = row[15]
 
             else:
 
                 matched_skills = [
                     skill.strip()
-                    for skill in str(row[13]).split(",")
+                    for skill in str(row[15]).split(",")
                     if skill.strip()
                 ]
 
@@ -215,17 +274,17 @@ def get_candidate(
 
         missing_skills = []
 
-        if row[14]:
+        if row[16]:
 
-            if isinstance(row[14], list):
+            if isinstance(row[16], list):
 
-                missing_skills = row[14]
+                missing_skills = row[16]
 
             else:
 
                 missing_skills = [
                     skill.strip()
-                    for skill in str(row[14]).split(",")
+                    for skill in str(row[16]).split(",")
                     if skill.strip()
                 ]
 
@@ -236,15 +295,62 @@ def get_candidate(
 
         recommendations = []
 
-        if row[15]:
+        if row[17]:
 
-            if isinstance(row[15], list):
+            if isinstance(row[17], list):
 
-                recommendations = row[15]
+                recommendations = row[17]
 
             else:
 
-                recommendations = row[15]
+                recommendations = row[17]
+
+
+        # =================================================
+        # EXISTING DECISION
+        # =================================================
+
+        decision = (
+
+            row[10]
+            if row[10]
+            else "REVIEW"
+
+        )
+
+
+        # =================================================
+        # ML RESULT
+        # =================================================
+
+        ml_prediction = (
+
+            row[12]
+            if row[12]
+            else "REVIEW"
+
+        )
+
+        ml_confidence = (
+
+            float(row[13])
+            if row[13] is not None
+            else 0
+
+        )
+
+
+        # =================================================
+        # SYSTEM COMPARISON
+        # =================================================
+
+        systems_agree = (
+
+            decision.upper()
+            ==
+            ml_prediction.upper()
+
+        )
 
 
         # =================================================
@@ -257,79 +363,102 @@ def get_candidate(
             # BASIC INFORMATION
             # ---------------------------------------------
 
-            "candidate_id": row[0],
+            "candidate_id":
+                row[0],
 
-            "resume_id": row[1],
+            "resume_id":
+                row[1],
 
-            "filename": (
+            "filename":
                 row[2]
                 if row[2]
-                else "N/A"
-            ),
+                else "N/A",
 
-            "evaluation_id": row[3],
+            "evaluation_id":
+                row[3],
 
 
             # ---------------------------------------------
             # JOB INFORMATION
             # ---------------------------------------------
 
-            "job_id": row[4],
+            "job_id":
+                row[4],
 
-            "job_title": (
+            "job_title":
                 row[5]
                 if row[5]
-                else "N/A"
-            ),
+                else "N/A",
 
-            "required_skills": required_skills,
+            "required_skills":
+                required_skills,
 
 
             # ---------------------------------------------
-            # SCREENING RESULTS
+            # EXISTING SCREENING RESULTS
             # ---------------------------------------------
 
-            "score": (
+            "score":
                 row[7]
                 if row[7] is not None
-                else 0
-            ),
+                else 0,
 
-            "match_percentage": (
+            "match_percentage":
                 float(row[8])
                 if row[8] is not None
-                else 0
-            ),
+                else 0,
 
-            "summary": (
+            "summary":
                 row[9]
                 if row[9]
-                else "No summary available."
-            ),
+                else "No summary available.",
 
-            "decision": (
-                row[10]
-                if row[10]
-                else "REVIEW"
-            ),
+            "decision":
+                decision,
 
-            "created_at": row[11],
+            "created_at":
+                row[11],
+
+
+            # ---------------------------------------------
+            # MACHINE LEARNING RESULTS
+            # ---------------------------------------------
+
+            "ml_prediction":
+                ml_prediction,
+
+            "ml_confidence":
+                ml_confidence,
+
+
+            # ---------------------------------------------
+            # SYSTEM COMPARISON
+            # ---------------------------------------------
+
+            "systems_agree":
+                systems_agree,
 
 
             # ---------------------------------------------
             # SKILL GAP
             # ---------------------------------------------
 
-            "skill_gap_id": row[12],
+            "skill_gap_id":
+                row[14],
 
             "skill_gap": {
 
-                "matched_skills": matched_skills,
+                "matched_skills":
+                    matched_skills,
 
-                "missing_skills": missing_skills,
+                "missing_skills":
+                    missing_skills,
 
-                "recommendations": recommendations
+                "recommendations":
+                    recommendations
+
             }
+
         }
 
     finally:

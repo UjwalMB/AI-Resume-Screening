@@ -1,0 +1,16 @@
+resume_text,label
+"Python FastAPI SQL pandas NumPy machine learning Git Docker",SHORTLIST
+"Python Django PostgreSQL REST API Docker AWS",SHORTLIST
+"Python pandas NumPy scikit-learn machine learning SQL",SHORTLIST
+"Python FastAPI Flask SQL Git Linux",SHORTLIST
+"Data Science Python pandas NumPy machine learning statistics",SHORTLIST
+"React JavaScript HTML CSS frontend development Git",REVIEW
+"Java Spring Boot MySQL REST API Git",REVIEW
+"HTML CSS JavaScript Bootstrap web development",REVIEW
+"Node.js Express MongoDB JavaScript REST API",REVIEW
+"PHP HTML CSS MySQL web development",REVIEW
+"Mechanical engineering AutoCAD manufacturing production",REJECT
+"Civil engineering construction AutoCAD surveying",REJECT
+"Accounting finance taxation GST Tally",REJECT
+"Electrical engineering power systems circuits",REJECT
+"Hotel management hospitality food service",REJECT
