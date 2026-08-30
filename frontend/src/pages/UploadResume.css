@@ -1,124 +1,228 @@
 /* =========================================================
-   UPLOAD RESUME PAGE
-   ========================================================= */
+   PAGE
+========================================================= */
 
-.upload-page {
-  min-height: calc(100vh - 70px);
-  padding: 40px 50px 70px;
+.upload-resume-page {
+  min-height: 100vh;
+  padding: 32px;
   background: #f5f7fb;
-  box-sizing: border-box;
-}
-
-.upload-container {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
+  color: #172033;
 }
 
 
 /* =========================================================
-   PAGE HEADER
-   ========================================================= */
+   HEADER
+========================================================= */
 
 .upload-header {
-  margin-bottom: 28px;
+  max-width: 1200px;
+  margin: 0 auto 28px;
+}
+
+.page-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
 }
 
 .upload-header h1 {
-  margin: 0;
-  color: #172033;
-  font-size: 36px;
+  margin: 0 0 8px;
+  font-size: 32px;
   font-weight: 800;
-  letter-spacing: -0.5px;
 }
 
 .upload-header p {
-  margin: 8px 0 0;
-  color: #718096;
-  font-size: 15px;
-  line-height: 1.6;
+  max-width: 700px;
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
 }
 
 
 /* =========================================================
-   ERROR MESSAGE
-   ========================================================= */
+   LAYOUT
+========================================================= */
 
-.upload-error {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.upload-layout {
+  max-width: 1200px;
+  margin: 0 auto;
 
-  margin-bottom: 22px;
-  padding: 14px 18px;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.5fr)
+    minmax(300px, 0.8fr);
 
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  border-radius: 12px;
-
-  color: #be123c;
-  font-size: 14px;
-}
-
-.upload-error strong {
-  font-weight: 800;
+  gap: 24px;
 }
 
 
 /* =========================================================
-   MAIN UPLOAD CARD
-   ========================================================= */
+   CARDS
+========================================================= */
 
-.upload-card {
+.upload-card,
+.process-card {
   background: #ffffff;
-
-  border: 1px solid #e5e9f2;
-  border-radius: 20px;
-
-  padding: 30px;
+  border: 1px solid #e8edf5;
+  border-radius: 22px;
+  padding: 28px;
 
   box-shadow:
-    0 8px 30px rgba(15, 23, 42, 0.06);
+    0 10px 35px rgba(15, 23, 42, 0.06);
+}
+
+.process-card {
+  height: fit-content;
 }
 
 
 /* =========================================================
-   FORM GROUP
-   ========================================================= */
+   SECTION TITLE
+========================================================= */
 
-.form-group {
+.section-title {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-
+  align-items: center;
+  gap: 14px;
   margin-bottom: 24px;
 }
 
-.form-group label {
-  color: #334155;
+.section-icon {
+  width: 46px;
+  height: 46px;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+  background: #eef2ff;
+
+  font-size: 21px;
+}
+
+.section-title h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.section-title p {
+  margin: 0;
+  color: #64748b;
   font-size: 13px;
+}
+
+
+/* =========================================================
+   DROPZONE
+========================================================= */
+
+.upload-dropzone {
+  min-height: 230px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 25px;
+
+  border: 2px dashed #cbd5e1;
+  border-radius: 18px;
+
+  background: #f8fafc;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.upload-dropzone:hover {
+  border-color: #6366f1;
+  background: #f5f7ff;
+  transform: translateY(-2px);
+}
+
+.upload-dropzone.has-file {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.upload-icon,
+.file-icon {
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 18px;
+
+  background: #eef2ff;
+
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.file-icon {
+  background: #dcfce7;
+}
+
+.upload-dropzone h3 {
+  margin: 0 0 7px;
+  font-size: 17px;
+}
+
+.upload-dropzone p {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.upload-format,
+.change-file {
+  color: #6366f1;
+  font-size: 12px;
   font-weight: 700;
 }
 
 
 /* =========================================================
-   INPUT + SELECT
-   ========================================================= */
+   FORM
+========================================================= */
 
-.form-group input,
+.form-group {
+  margin-top: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
 .form-group select {
   width: 100%;
-  height: 48px;
-
-  padding: 0 14px;
-
   box-sizing: border-box;
 
-  background: #ffffff;
+  padding: 13px 14px;
 
-  border: 1px solid #d9dfeb;
+  border: 1px solid #dbe2ea;
   border-radius: 11px;
+
+  background: white;
 
   color: #172033;
 
@@ -126,290 +230,235 @@
 
   outline: none;
 
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+  cursor: pointer;
+
+  transition: 0.2s;
 }
 
-.form-group input:focus,
 .form-group select:focus {
-  border-color: #4f46e5;
+  border-color: #6366f1;
 
   box-shadow:
-    0 0 0 3px rgba(79, 70, 229, 0.1);
+    0 0 0 3px
+    rgba(99, 102, 241, 0.1);
 }
 
-.form-group input[readonly] {
+.form-group select:disabled {
   background: #f8fafc;
-  color: #64748b;
   cursor: not-allowed;
 }
 
 
 /* =========================================================
-   LOADING JOBS
-   ========================================================= */
+   REQUIRED SKILLS
+========================================================= */
 
-.loading-text {
-  min-height: 48px;
+.required-skills-box {
+  margin-top: 20px;
+
+  padding: 18px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+
+  background: #fafbff;
+}
+
+.required-skills-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  margin-bottom: 14px;
+}
+
+.required-skills-header h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.required-skills-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.skill-count {
+  min-width: 28px;
+  height: 28px;
 
   display: flex;
   align-items: center;
+  justify-content: center;
 
-  padding: 0 14px;
+  padding: 0 8px;
 
-  box-sizing: border-box;
+  border-radius: 20px;
 
-  background: #f8fafc;
+  background: #eef2ff;
+  color: #4f46e5;
 
-  border: 1px solid #e2e8f0;
-  border-radius: 11px;
-
-  color: #64748b;
-
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 
 /* =========================================================
-   NO JOBS
-   ========================================================= */
+   SKILL TAGS
+========================================================= */
 
-.no-jobs {
-  padding: 20px;
-
-  background: #f8fafc;
-
-  border: 1px dashed #cbd5e1;
-  border-radius: 12px;
-
-  text-align: center;
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.no-jobs p {
-  margin: 0 0 14px;
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 7px 11px;
+
+  border-radius: 20px;
+
+  background: #e0e7ff;
+  color: #3730a3;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.skills-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 14px;
+
+  border-radius: 10px;
+
+  background: #f1f5f9;
 
   color: #64748b;
-
-  font-size: 14px;
 }
 
-.no-jobs button {
-  border: none;
+.skills-placeholder span {
+  font-size: 17px;
+}
 
-  padding: 10px 18px;
+.skills-placeholder p {
+  margin: 0;
+  font-size: 13px;
+}
 
-  border-radius: 9px;
 
-  background: #4f46e5;
+/* =========================================================
+   MESSAGES
+========================================================= */
 
-  color: #ffffff;
+.upload-message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-top: 18px;
+
+  padding: 13px 15px;
+
+  border-radius: 11px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.success-message {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.upload-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.reset-button,
+.upload-button {
+  min-height: 44px;
+
+  padding: 0 18px;
+
+  border-radius: 10px;
 
   font-size: 13px;
   font-weight: 700;
 
   cursor: pointer;
 
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
-.no-jobs button:hover {
+.reset-button {
+  border: 1px solid #dbe2ea;
+  background: white;
+  color: #475569;
+}
+
+.reset-button:hover {
+  background: #f8fafc;
+}
+
+.upload-button {
+  border: none;
+
+  background: #4f46e5;
+  color: white;
+
+  box-shadow:
+    0 6px 16px
+    rgba(79, 70, 229, 0.22);
+}
+
+.upload-button:hover:not(:disabled) {
   background: #4338ca;
   transform: translateY(-1px);
 }
 
-
-/* =========================================================
-   FILE UPLOAD
-   ========================================================= */
-
-.file-upload-box {
-  position: relative;
-
-  width: 100%;
-  min-height: 150px;
-
-  border: 2px dashed #cbd5e1;
-  border-radius: 14px;
-
-  background: #f8fafc;
-
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.file-upload-box:hover {
-  border-color: #6366f1;
-  background: #f8faff;
-}
-
-
-/* Hide actual file input */
-
-.file-upload-box input[type="file"] {
-  position: absolute;
-
-  width: 1px;
-  height: 1px;
-
-  opacity: 0;
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   FILE LABEL
-   ========================================================= */
-
-.file-label {
-  min-height: 150px;
-
-  display: flex;
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 10px;
-
-  cursor: pointer;
-
-  color: #475569;
-
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.file-icon {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  width: 52px;
-  height: 52px;
-
-  border-radius: 14px;
-
-  background: #eef2ff;
-
-  font-size: 25px;
-}
-
-
-/* =========================================================
-   SELECTED FILE
-   ========================================================= */
-
-.selected-file {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  margin-top: 12px;
-
-  padding: 11px 14px;
-
-  background: #f0fdf4;
-
-  border: 1px solid #bbf7d0;
-
-  border-radius: 10px;
-
-  color: #166534;
-
-  font-size: 13px;
-
-  overflow: hidden;
-}
-
-.selected-file strong {
-  max-width: 450px;
-
-  overflow: hidden;
-
-  white-space: nowrap;
-
-  text-overflow: ellipsis;
-
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   SCREEN BUTTON
-   ========================================================= */
-
-.screen-button {
-  width: 100%;
-
-  min-height: 52px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 10px;
-
-  margin-top: 5px;
-
-  border: none;
-  border-radius: 12px;
-
-  background: linear-gradient(
-    135deg,
-    #4f46e5,
-    #6366f1
-  );
-
-  color: #ffffff;
-
-  font-size: 15px;
-  font-weight: 800;
-
-  cursor: pointer;
-
-  box-shadow:
-    0 8px 18px rgba(79, 70, 229, 0.22);
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.screen-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 12px 24px rgba(79, 70, 229, 0.28);
-}
-
-.screen-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.screen-button:disabled {
+.upload-button:disabled,
+.reset-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 
 /* =========================================================
    BUTTON SPINNER
-   ========================================================= */
+========================================================= */
 
 .button-spinner {
-  width: 17px;
-  height: 17px;
+  display: inline-block;
+
+  width: 14px;
+  height: 14px;
+
+  margin-right: 8px;
 
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #ffffff;
+  border-top-color: white;
 
   border-radius: 50%;
 
@@ -424,393 +473,132 @@
 
 
 /* =========================================================
-   RESULT CARD
-   ========================================================= */
+   PROCESS CARD
+========================================================= */
 
-.result-card {
-  margin-top: 28px;
-
-  background: #ffffff;
-
-  border: 1px solid #e5e9f2;
-  border-radius: 20px;
-
-  padding: 30px;
-
-  box-shadow:
-    0 8px 30px rgba(15, 23, 42, 0.06);
-}
-
-
-/* =========================================================
-   RESULT HEADER
-   ========================================================= */
-
-.result-header {
+.process-list {
   display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 20px;
-
-  padding-bottom: 24px;
-
-  border-bottom: 1px solid #edf0f5;
+  flex-direction: column;
+  gap: 19px;
 }
 
-.result-header h2 {
-  margin: 0;
-
-  color: #172033;
-
-  font-size: 24px;
-  font-weight: 800;
+.process-item {
+  display: flex;
+  gap: 13px;
 }
 
-.result-header p {
-  margin: 7px 0 0;
+.process-number {
+  flex-shrink: 0;
 
-  color: #718096;
-
-  font-size: 14px;
-}
-
-.success-icon {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
+  border-radius: 10px;
 
-  border-radius: 50%;
+  background: #eef2ff;
+  color: #4f46e5;
 
-  background: #dcfce7;
-
-  color: #15803d;
-
-  font-size: 24px;
+  font-size: 12px;
   font-weight: 800;
 }
 
-
-/* =========================================================
-   RESULT GRID
-   ========================================================= */
-
-.result-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
-  gap: 16px;
-
-  margin-top: 25px;
+.process-item h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
 }
 
-.result-box {
-  padding: 18px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e5e9f2;
-
-  border-radius: 13px;
-}
-
-.result-box span {
-  display: block;
-
-  margin-bottom: 7px;
+.process-item p {
+  margin: 0;
 
   color: #64748b;
 
   font-size: 12px;
-  font-weight: 700;
-
-  text-transform: uppercase;
-
-  letter-spacing: 0.04em;
-}
-
-.result-box strong {
-  display: block;
-
-  color: #172033;
-
-  font-size: 20px;
-  font-weight: 800;
+  line-height: 1.5;
 }
 
 
 /* =========================================================
-   SYSTEM STATUS
-   ========================================================= */
+   FEATURES
+========================================================= */
 
-.system-status {
-  display: flex;
+.screening-features {
+  display: grid;
 
-  align-items: center;
-  justify-content: space-between;
+  grid-template-columns: 1fr 1fr;
 
-  gap: 15px;
+  gap: 9px;
 
-  margin-top: 18px;
+  margin-top: 25px;
+  padding-top: 20px;
 
-  padding: 15px 18px;
-
-  border-radius: 12px;
-
-  background: #f8fafc;
-
-  border: 1px solid #e5e9f2;
+  border-top: 1px solid #e2e8f0;
 }
 
-.system-status span {
-  color: #64748b;
+.screening-features div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 
-  font-size: 13px;
+  color: #475569;
+
+  font-size: 12px;
   font-weight: 600;
 }
 
-.system-status strong {
-  color: #15803d;
-
-  font-size: 13px;
-  font-weight: 800;
+.screening-features span {
+  color: #16a34a;
+  font-weight: 900;
 }
 
 
 /* =========================================================
-   RESULT SECTIONS
-   ========================================================= */
-
-.result-section {
-  margin-top: 25px;
-
-  padding-top: 22px;
-
-  border-top: 1px solid #edf0f5;
-}
-
-.result-section h3 {
-  margin: 0 0 12px;
-
-  color: #172033;
-
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.result-section p {
-  margin: 0;
-
-  color: #64748b;
-
-  font-size: 14px;
-
-  line-height: 1.7;
-}
-
-
-/* =========================================================
-   SKILL LIST
-   ========================================================= */
-
-.skill-list {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 8px;
-}
-
-.skill {
-  display: inline-flex;
-
-  align-items: center;
-
-  padding: 7px 11px;
-
-  border-radius: 999px;
-
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.skill.matched {
-  color: #15803d;
-  background: #dcfce7;
-
-  border: 1px solid #bbf7d0;
-}
-
-.skill.missing {
-  color: #b91c1c;
-  background: #fee2e2;
-
-  border: 1px solid #fecaca;
-}
-
-
-/* =========================================================
-   RECOMMENDATIONS
-   ========================================================= */
-
-.result-section ul {
-  margin: 0;
-
-  padding-left: 20px;
-
-  color: #64748b;
-
-  font-size: 14px;
-
-  line-height: 1.8;
-}
-
-.result-section li {
-  margin-bottom: 5px;
-}
-
-
-/* =========================================================
-   RESULT ACTIONS
-   ========================================================= */
-
-.result-actions {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 12px;
-
-  margin-top: 30px;
-
-  padding-top: 24px;
-
-  border-top: 1px solid #edf0f5;
-}
-
-.view-candidate-button,
-.upload-another-button {
-  min-height: 46px;
-
-  padding: 0 20px;
-
-  border-radius: 10px;
-
-  font-size: 13px;
-  font-weight: 800;
-
-  cursor: pointer;
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease;
-}
-
-.view-candidate-button {
-  border: none;
-
-  background: #4f46e5;
-
-  color: #ffffff;
-}
-
-.view-candidate-button:hover {
-  background: #4338ca;
-
-  transform: translateY(-1px);
-}
-
-.upload-another-button {
-  border: 1px solid #d9dfeb;
-
-  background: #ffffff;
-
-  color: #334155;
-}
-
-.upload-another-button:hover {
-  background: #f8fafc;
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
-   RESPONSIVE - TABLET
-   ========================================================= */
+   RESPONSIVE
+========================================================= */
 
 @media (max-width: 900px) {
 
-  .upload-page {
-    padding: 30px 25px 50px;
-  }
-
-  .result-grid {
-    grid-template-columns:
-      repeat(2, 1fr);
+  .upload-layout {
+    grid-template-columns: 1fr;
   }
 
 }
 
 
-/* =========================================================
-   RESPONSIVE - MOBILE
-   ========================================================= */
-
 @media (max-width: 600px) {
 
-  .upload-page {
-    padding: 25px 16px 40px;
-  }
-
-  .upload-header h1 {
-    font-size: 28px;
+  .upload-resume-page {
+    padding: 18px;
   }
 
   .upload-card,
-  .result-card {
+  .process-card {
     padding: 20px;
-    border-radius: 16px;
+    border-radius: 17px;
   }
 
-  .result-header {
-    align-items: flex-start;
+  .upload-header h1 {
+    font-size: 26px;
   }
 
-  .result-header h2 {
-    font-size: 20px;
+  .upload-dropzone {
+    min-height: 200px;
   }
 
-  .result-grid {
-    grid-template-columns: 1fr;
+  .upload-actions {
+    flex-direction: column-reverse;
   }
 
-  .system-status {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .result-actions {
-    flex-direction: column;
-  }
-
-  .view-candidate-button,
-  .upload-another-button {
+  .reset-button,
+  .upload-button {
     width: 100%;
   }
 
-  .selected-file {
-    align-items: flex-start;
-    flex-wrap: wrap;
+  .screening-features {
+    grid-template-columns: 1fr;
   }
 
 }

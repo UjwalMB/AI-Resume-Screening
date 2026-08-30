@@ -1,5 +1,10 @@
 def calculate_score(classified_sentences):
-    score = 0
+    """
+    Calculate overall resume quality score.
+
+    This score measures resume completeness/quality.
+    It is NOT the job match score.
+    """
 
     categories = {
         "skills": 0,
@@ -12,31 +17,97 @@ def calculate_score(classified_sentences):
     }
 
     for item in classified_sentences:
-        category = item["category"]
+
+        category = item.get("category")
 
         if category in categories:
             categories[category] += 1
 
-    # Skills: maximum 35 points
-    score += min(categories["skills"] * 7, 35)
+    score = 0
 
-    # Experience: maximum 30 points
-    score += min(categories["experience"] * 6, 30)
+    # =====================================================
+    # SKILLS
+    # Maximum: 25 points
+    # =====================================================
 
-    # Education: maximum 20 points
-    score += min(categories["education"] * 10, 20)
+    if categories["skills"] >= 3:
+        score += 25
 
-    # Certifications: maximum 10 points
-    score += min(categories["certification"] * 5, 10)
+    elif categories["skills"] == 2:
+        score += 20
 
-    # Summary: maximum 5 points
+    elif categories["skills"] == 1:
+        score += 12
+
+    # =====================================================
+    # EXPERIENCE / PROJECTS
+    # Maximum: 25 points
+    # =====================================================
+
+    if categories["experience"] >= 3:
+        score += 25
+
+    elif categories["experience"] == 2:
+        score += 20
+
+    elif categories["experience"] == 1:
+        score += 12
+
+    # =====================================================
+    # EDUCATION
+    # Maximum: 20 points
+    # =====================================================
+
+    if categories["education"] >= 2:
+        score += 20
+
+    elif categories["education"] == 1:
+        score += 15
+
+    # =====================================================
+    # CERTIFICATIONS
+    # Maximum: 10 points
+    # =====================================================
+
+    if categories["certification"] >= 2:
+        score += 10
+
+    elif categories["certification"] == 1:
+        score += 7
+
+    # =====================================================
+    # OBJECTIVE / SUMMARY
+    # Maximum: 10 points
+    # =====================================================
+
+    if categories["objectives"] > 0:
+        score += 5
+
     if categories["summary"] > 0:
         score += 5
+
+    # =====================================================
+    # PERSONAL INFORMATION
+    # Maximum: 10 points
+    # =====================================================
+
+    if categories["personal_information"] > 0:
+        score += 10
 
     return min(score, 100)
 
 
 def generate_summary(classified_sentences):
+
+    """
+    Generate a concise resume summary.
+
+    Priority:
+    1. Skills
+    2. Experience
+    3. Education
+    4. Certification
+    """
 
     important_categories = [
         "skills",
@@ -49,14 +120,25 @@ def generate_summary(classified_sentences):
 
     for item in classified_sentences:
 
-        if item["category"] in important_categories:
-            important_sentences.append(item["sentence"])
+        category = item.get("category")
 
-    summary = " ".join(important_sentences)
+        sentence = item.get("sentence", "").strip()
+
+        if (
+            category in important_categories
+            and sentence
+        ):
+            important_sentences.append(sentence)
+
+    summary = " ".join(
+        important_sentences
+    )
 
     words = summary.split()
 
     if len(words) > 150:
-        summary = " ".join(words[:150])
+        summary = " ".join(
+            words[:150]
+        )
 
     return summary

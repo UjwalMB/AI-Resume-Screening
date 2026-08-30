@@ -13,90 +13,70 @@ function Dashboard() {
   });
 
   const [candidates, setCandidates] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
-  // =====================================================
-  // LOAD DASHBOARD DATA
-  // =====================================================
+  // =========================================================
+  // LOAD DASHBOARD
+  // =========================================================
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError("");
 
-
-      // -------------------------------------------------
-      // GET DASHBOARD STATISTICS
-      // -------------------------------------------------
-
-      const statsResponse = await api.get(
-        "/dashboard/stats"
-      );
-
+      const statsResponse = await api.get("/dashboard/stats");
 
       setStats({
         total_candidates:
-          statsResponse.data.total_candidates ?? 0,
+          Number(statsResponse.data.total_candidates) || 0,
 
         shortlisted:
-          statsResponse.data.shortlisted ?? 0,
+          Number(statsResponse.data.shortlisted) || 0,
 
         rejected:
-          statsResponse.data.rejected ?? 0,
+          Number(statsResponse.data.rejected) || 0,
 
         review:
-          statsResponse.data.review ?? 0,
+          Number(statsResponse.data.review) || 0,
 
         average_match_percentage:
           Number(
-            statsResponse.data.average_match_percentage ?? 0
-          ),
+            statsResponse.data.average_match_percentage
+          ) || 0,
       });
 
+      const candidatesResponse =
+        await api.get("/candidates");
 
-      // -------------------------------------------------
-      // GET CANDIDATES
-      // -------------------------------------------------
-
-      const candidatesResponse = await api.get(
-        "/candidates"
-      );
-
-
-      setCandidates(
+      const candidateData =
         Array.isArray(candidatesResponse.data)
           ? candidatesResponse.data
-          : []
-      );
+          : [];
 
-    } catch (error) {
+      setCandidates(candidateData);
+    } catch (err) {
       console.error(
         "Dashboard loading error:",
-        error
+        err
       );
 
       setError(
-        error.response?.data?.detail ||
-        "Unable to load dashboard data."
+        err.response?.data?.detail ||
+          "Unable to load dashboard data."
       );
-
     } finally {
       setLoading(false);
     }
   };
 
-
-  // =====================================================
+  // =========================================================
   // RECENT CANDIDATES
-  // =====================================================
+  // =========================================================
 
   const recentCandidates = [...candidates]
     .sort(
@@ -106,35 +86,14 @@ function Dashboard() {
     )
     .slice(0, 5);
 
-
-  // =====================================================
-  // MATCH PERCENTAGE
-  // =====================================================
-
-  const matchPercentage = Math.min(
-    Math.max(
-      Number(
-        stats.average_match_percentage || 0
-      ),
-      0
-    ),
-    100
-  );
-
-
-  // =====================================================
+  // =========================================================
   // DECISION TOTAL
-  // =====================================================
+  // =========================================================
 
   const decisionTotal =
-    Number(stats.shortlisted || 0) +
-    Number(stats.review || 0) +
-    Number(stats.rejected || 0);
-
-
-  // =====================================================
-  // PERCENTAGES
-  // =====================================================
+    stats.shortlisted +
+    stats.review +
+    stats.rejected;
 
   const shortlistedPercentage =
     decisionTotal > 0
@@ -151,86 +110,147 @@ function Dashboard() {
       ? (stats.rejected / decisionTotal) * 100
       : 0;
 
+  // =========================================================
+  // MATCH
+  // =========================================================
 
-  // =====================================================
-  // DECISION CLASS
-  // =====================================================
+  const matchPercentage = Math.min(
+    Math.max(
+      Number(stats.average_match_percentage) || 0,
+      0
+    ),
+    100
+  );
+
+  // =========================================================
+  // HELPERS
+  // =========================================================
 
   const getDecisionClass = (decision) => {
-    return (
-      decision
-        ?.toLowerCase()
-        .replace(/\s+/g, "-") ||
-      "review"
-    );
+    const value =
+      decision?.toLowerCase() || "review";
+
+    if (value.includes("shortlist")) {
+      return "shortlisted";
+    }
+
+    if (value.includes("reject")) {
+      return "rejected";
+    }
+
+    return "review";
   };
 
+  const getScoreClass = (score) => {
+    const value = Number(score) || 0;
 
-  // =====================================================
+    if (value >= 80) return "excellent";
+    if (value >= 60) return "good";
+    return "low";
+  };
+
+  // =========================================================
   // LOADING
-  // =====================================================
+  // =========================================================
 
   if (loading) {
     return (
       <div className="dashboard-page">
+        <div className="dashboard-loading">
+          <div className="dashboard-spinner"></div>
 
-        <div className="dashboard-container">
+          <h2>Loading AI Dashboard</h2>
 
-          <div className="dashboard-loading">
-
-            <div className="dashboard-spinner"></div>
-
-            <p>
-              Loading dashboard...
-            </p>
-
-          </div>
-
+          <p>
+            Fetching screening analytics...
+          </p>
         </div>
-
       </div>
     );
   }
 
-
-  // =====================================================
+  // =========================================================
   // PAGE
-  // =====================================================
+  // =========================================================
 
   return (
     <div className="dashboard-page">
-
       <div className="dashboard-container">
 
-
         {/* =================================================
-            HEADER
+            HERO HEADER
         ================================================= */}
 
-        <div className="dashboard-header">
+        <section className="dashboard-hero">
 
-          <div>
+          <div className="hero-content">
+
+            <div className="hero-badge">
+              <span className="live-dot"></span>
+              AI SCREENING SYSTEM
+            </div>
 
             <h1>
-              Recruitment Dashboard
+              Recruitment
+              <span> Intelligence Dashboard</span>
             </h1>
 
             <p>
-              Monitor AI-powered resume screening
-              and candidate performance.
+              Monitor AI-powered resume screening,
+              candidate matching and recruitment
+              decisions from one place.
             </p>
+
+            <div className="hero-actions">
+
+              <Link
+                to="/upload"
+                className="primary-action"
+              >
+                <span>＋</span>
+                Screen New Resume
+              </Link>
+
+              <Link
+                to="/candidates"
+                className="secondary-action"
+              >
+                View Candidates
+                <span>→</span>
+              </Link>
+
+            </div>
 
           </div>
 
+          <div className="hero-visual">
 
-          <Link
-            to="/upload"
-            className="dashboard-upload-button"
-          >
-            + Screen Resume
-          </Link>
+            <div className="ai-orb">
+              <div className="ai-orb-inner">
+                <span>AI</span>
+                <small>POWERED</small>
+              </div>
+            </div>
 
-        </div>
+            <div className="floating-card card-one">
+              <span>🎯</span>
+              <div>
+                <strong>SBERT</strong>
+                <small>Semantic Matching</small>
+              </div>
+            </div>
+
+            <div className="floating-card card-two">
+              <span>🧠</span>
+              <div>
+                <strong>ML</strong>
+                <small>Prediction Engine</small>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
 
 
         {/* =================================================
@@ -239,128 +259,103 @@ function Dashboard() {
 
         {error && (
           <div className="dashboard-error">
+            <span>⚠</span>
             {error}
           </div>
         )}
 
 
         {/* =================================================
-            STAT CARDS
+            STATISTICS
         ================================================= */}
 
-        <div className="dashboard-stats">
+        <section className="dashboard-stats">
 
-
-          {/* TOTAL */}
-
-          <div className="dashboard-stat-card">
-
-            <div className="stat-icon total">
+          <div className="dashboard-stat-card total-card">
+            <div className="stat-icon">
               👥
             </div>
 
             <div className="stat-content">
-
-              <span>
-                Total Candidates
-              </span>
-
+              <span>Total Candidates</span>
               <strong>
                 {stats.total_candidates}
               </strong>
-
+              <small>
+                Resumes screened
+              </small>
             </div>
-
           </div>
 
 
-          {/* SHORTLISTED */}
-
-          <div className="dashboard-stat-card">
-
-            <div className="stat-icon shortlisted">
+          <div className="dashboard-stat-card shortlisted-card">
+            <div className="stat-icon">
               ✓
             </div>
 
             <div className="stat-content">
-
-              <span>
-                Shortlisted
-              </span>
-
+              <span>Shortlisted</span>
               <strong>
                 {stats.shortlisted}
               </strong>
-
+              <small>
+                Strong candidates
+              </small>
             </div>
-
           </div>
 
 
-          {/* REVIEW */}
-
-          <div className="dashboard-stat-card">
-
-            <div className="stat-icon review">
+          <div className="dashboard-stat-card review-card">
+            <div className="stat-icon">
               !
             </div>
 
             <div className="stat-content">
-
-              <span>
-                Under Review
-              </span>
-
+              <span>Under Review</span>
               <strong>
                 {stats.review}
               </strong>
-
+              <small>
+                Need recruiter review
+              </small>
             </div>
-
           </div>
 
 
-          {/* REJECTED */}
-
-          <div className="dashboard-stat-card">
-
-            <div className="stat-icon rejected">
+          <div className="dashboard-stat-card rejected-card">
+            <div className="stat-icon">
               ×
             </div>
 
             <div className="stat-content">
-
-              <span>
-                Rejected
-              </span>
-
+              <span>Rejected</span>
               <strong>
                 {stats.rejected}
               </strong>
-
+              <small>
+                Below threshold
+              </small>
             </div>
-
           </div>
 
-        </div>
+        </section>
 
 
         {/* =================================================
-            MAIN GRID
+            ANALYTICS
         ================================================= */}
 
-        <div className="dashboard-main-grid">
+        <section className="analytics-grid">
 
-
-          {/* =================================================
-              AVERAGE MATCH
-          ================================================= */}
+          {/* MATCH */}
 
           <div className="dashboard-card match-card">
 
             <div className="card-header">
-
               <div>
+                <div className="section-label">
+                  AI ANALYTICS
+                </div>
 
                 <h2>
                   Average Job Match
@@ -369,11 +364,8 @@ function Dashboard() {
                 <p>
                   Overall candidate compatibility
                 </p>
-
               </div>
-
             </div>
-
 
             <div className="match-content">
 
@@ -384,31 +376,38 @@ function Dashboard() {
                     `${matchPercentage}%`,
                 }}
               >
-
                 <div className="match-circle-inner">
-
                   <strong>
-                    {matchPercentage.toFixed(2)}%
+                    {matchPercentage.toFixed(1)}%
                   </strong>
 
                   <span>
-                    Match
+                    MATCH
                   </span>
-
                 </div>
-
               </div>
-
 
               <div className="match-info">
 
+                <div className="metric-highlight">
+                  <span>Overall compatibility</span>
+
+                  <strong>
+                    {matchPercentage >= 80
+                      ? "Excellent"
+                      : matchPercentage >= 60
+                      ? "Good"
+                      : "Needs Improvement"}
+                  </strong>
+                </div>
+
                 <p>
-                  Average match score across all
-                  screened candidates.
+                  Average skill and job compatibility
+                  across screened candidates.
                 </p>
 
                 <Link to="/candidates">
-                  View all candidates →
+                  Explore candidate matches →
                 </Link>
 
               </div>
@@ -418,38 +417,38 @@ function Dashboard() {
           </div>
 
 
-          {/* =================================================
-              DECISION DISTRIBUTION
-          ================================================= */}
+          {/* DECISIONS */}
 
           <div className="dashboard-card">
 
             <div className="card-header">
 
               <div>
+                <div className="section-label">
+                  SCREENING ANALYTICS
+                </div>
 
                 <h2>
                   Candidate Decisions
                 </h2>
 
                 <p>
-                  Current screening distribution
+                  AI screening distribution
                 </p>
+              </div>
 
+              <div className="decision-total">
+                {decisionTotal}
+                <span>Total</span>
               </div>
 
             </div>
 
-
             <div className="decision-chart">
-
-
-              {/* SHORTLISTED */}
 
               <div className="decision-row">
 
                 <div className="decision-label">
-
                   <span className="decision-dot shortlisted"></span>
 
                   <span>
@@ -460,29 +459,27 @@ function Dashboard() {
                     {stats.shortlisted}
                   </strong>
 
+                  <small>
+                    {shortlistedPercentage.toFixed(0)}%
+                  </small>
                 </div>
 
                 <div className="decision-bar">
-
                   <div
                     className="decision-bar-fill shortlisted"
                     style={{
                       width:
                         `${shortlistedPercentage}%`,
                     }}
-                  ></div>
-
+                  />
                 </div>
 
               </div>
 
 
-              {/* REVIEW */}
-
               <div className="decision-row">
 
                 <div className="decision-label">
-
                   <span className="decision-dot review"></span>
 
                   <span>
@@ -493,29 +490,27 @@ function Dashboard() {
                     {stats.review}
                   </strong>
 
+                  <small>
+                    {reviewPercentage.toFixed(0)}%
+                  </small>
                 </div>
 
                 <div className="decision-bar">
-
                   <div
                     className="decision-bar-fill review"
                     style={{
                       width:
                         `${reviewPercentage}%`,
                     }}
-                  ></div>
-
+                  />
                 </div>
 
               </div>
 
 
-              {/* REJECTED */}
-
               <div className="decision-row">
 
                 <div className="decision-label">
-
                   <span className="decision-dot rejected"></span>
 
                   <span>
@@ -526,18 +521,19 @@ function Dashboard() {
                     {stats.rejected}
                   </strong>
 
+                  <small>
+                    {rejectedPercentage.toFixed(0)}%
+                  </small>
                 </div>
 
                 <div className="decision-bar">
-
                   <div
                     className="decision-bar-fill rejected"
                     style={{
                       width:
                         `${rejectedPercentage}%`,
                     }}
-                  ></div>
-
+                  />
                 </div>
 
               </div>
@@ -546,36 +542,105 @@ function Dashboard() {
 
           </div>
 
-        </div>
+        </section>
+
+
+        {/* =================================================
+            AI FEATURES
+        ================================================= */}
+
+        <section className="ai-features">
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              🧠
+            </div>
+
+            <div>
+              <strong>Machine Learning</strong>
+              <span>
+                Resume classification
+                and prediction
+              </span>
+            </div>
+          </div>
+
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              🔎
+            </div>
+
+            <div>
+              <strong>SBERT Matching</strong>
+              <span>
+                Semantic resume-job
+                similarity
+              </span>
+            </div>
+          </div>
+
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              🛠
+            </div>
+
+            <div>
+              <strong>Skill Analysis</strong>
+              <span>
+                Matched and missing
+                skills
+              </span>
+            </div>
+          </div>
+
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              💼
+            </div>
+
+            <div>
+              <strong>Job Recommendations</strong>
+              <span>
+                Find suitable roles
+                automatically
+              </span>
+            </div>
+          </div>
+
+        </section>
 
 
         {/* =================================================
             RECENT CANDIDATES
         ================================================= */}
 
-        <div className="dashboard-card recent-card">
+        <section className="dashboard-card recent-card">
 
           <div className="card-header">
 
             <div>
+              <div className="section-label">
+                CANDIDATE ACTIVITY
+              </div>
 
               <h2>
                 Recent Candidates
               </h2>
 
               <p>
-                Latest resumes processed by the
-                screening system.
+                Latest resumes processed by
+                the AI screening system.
               </p>
-
             </div>
-
 
             <Link
               to="/candidates"
               className="view-all-link"
             >
-              View All
+              View All →
             </Link>
 
           </div>
@@ -585,12 +650,21 @@ function Dashboard() {
 
             <div className="dashboard-empty">
 
+              <div className="empty-icon">
+                📄
+              </div>
+
+              <h3>
+                No Candidates Yet
+              </h3>
+
               <p>
-                No candidates have been screened yet.
+                Upload your first resume to
+                start AI screening.
               </p>
 
               <Link to="/upload">
-                Screen your first resume
+                Screen First Resume
               </Link>
 
             </div>
@@ -602,147 +676,144 @@ function Dashboard() {
               <table className="recent-table">
 
                 <thead>
-
                   <tr>
-
-                    <th>
-                      Candidate
-                    </th>
-
-                    <th>
-                      Resume
-                    </th>
-
-                    <th>
-                      Job
-                    </th>
-
-                    <th>
-                      Score
-                    </th>
-
-                    <th>
-                      Match
-                    </th>
-
-                    <th>
-                      Decision
-                    </th>
-
+                    <th>Candidate</th>
+                    <th>Resume</th>
+                    <th>Job</th>
+                    <th>Score</th>
+                    <th>Match</th>
+                    <th>Decision</th>
+                    <th>Action</th>
                   </tr>
-
                 </thead>
-
 
                 <tbody>
 
                   {recentCandidates.map(
-                    (candidate) => (
+                    (candidate) => {
 
-                      <tr
-                        key={
-                          candidate.candidate_id
-                        }
-                      >
+                      const score =
+                        Number(candidate.score) || 0;
 
-                        {/* CANDIDATE */}
+                      const match =
+                        Number(
+                          candidate.match_percentage
+                        ) || 0;
 
-                        <td>
+                      return (
+                        <tr
+                          key={
+                            candidate.candidate_id
+                          }
+                        >
 
-                          <Link
-                            to={`/candidates/${candidate.candidate_id}`}
-                            className="candidate-link"
-                          >
-                            #
-                            {
-                              candidate.candidate_id
-                            }
-                          </Link>
+                          <td>
+                            <Link
+                              to={`/candidates/${candidate.candidate_id}`}
+                              className="candidate-link"
+                            >
+                              <span className="candidate-mini-avatar">
+                                C
+                              </span>
 
-                        </td>
-
-
-                        {/* RESUME */}
-
-                        <td>
-
-                          <span
-                            className="dashboard-resume-name"
-                            title={
-                              candidate.filename
-                            }
-                          >
-                            {
-                              candidate.filename ||
-                              "N/A"
-                            }
-                          </span>
-
-                        </td>
+                              <span>
+                                #
+                                {
+                                  candidate.candidate_id
+                                }
+                              </span>
+                            </Link>
+                          </td>
 
 
-                        {/* JOB */}
-
-                        <td>
-
-                          {candidate.job_id
-                            ? `#${candidate.job_id}`
-                            : "N/A"}
-
-                        </td>
-
-
-                        {/* SCORE */}
-
-                        <td>
-
-                          <strong>
-                            {
-                              candidate.score ??
-                              0
-                            }
-                            /100
-                          </strong>
-
-                        </td>
+                          <td>
+                            <span
+                              className="dashboard-resume-name"
+                              title={
+                                candidate.filename
+                              }
+                            >
+                              📄{" "}
+                              {
+                                candidate.filename ||
+                                "Resume"
+                              }
+                            </span>
+                          </td>
 
 
-                        {/* MATCH */}
-
-                        <td>
-
-                          <strong className="dashboard-match">
-
-                            {
-                              candidate.match_percentage ??
-                              0
-                            }%
-
-                          </strong>
-
-                        </td>
+                          <td>
+                            <span className="job-badge">
+                              {candidate.job_id
+                                ? `Job #${candidate.job_id}`
+                                : "N/A"}
+                            </span>
+                          </td>
 
 
-                        {/* DECISION */}
+                          <td>
+                            <div className="table-score">
+                              <strong
+                                className={getScoreClass(
+                                  score
+                                )}
+                              >
+                                {score.toFixed(1)}
+                              </strong>
 
-                        <td>
+                              <span>/100</span>
+                            </div>
+                          </td>
 
-                          <span
-                            className={`dashboard-decision ${getDecisionClass(
-                              candidate.decision
-                            )}`}
-                          >
-                            {
-                              candidate.decision ||
-                              "REVIEW"
-                            }
-                          </span>
 
-                        </td>
+                          <td>
+                            <div className="table-match">
+                              <div className="mini-progress">
+                                <div
+                                  style={{
+                                    width:
+                                      `${Math.min(
+                                        Math.max(
+                                          match,
+                                          0
+                                        ),
+                                        100
+                                      )}%`,
+                                  }}
+                                />
+                              </div>
 
-                      </tr>
+                              <strong>
+                                {match.toFixed(0)}%
+                              </strong>
+                            </div>
+                          </td>
 
-                    )
+
+                          <td>
+                            <span
+                              className={`dashboard-decision ${getDecisionClass(
+                                candidate.decision
+                              )}`}
+                            >
+                              {candidate.decision ||
+                                "REVIEW"}
+                            </span>
+                          </td>
+
+
+                          <td>
+                            <Link
+                              to={`/candidates/${candidate.candidate_id}`}
+                              className="table-view-button"
+                            >
+                              View
+                            </Link>
+                          </td>
+
+                        </tr>
+                      );
+                    }
                   )}
 
                 </tbody>
@@ -750,93 +821,108 @@ function Dashboard() {
               </table>
 
             </div>
-
           )}
 
-        </div>
+        </section>
 
 
         {/* =================================================
             QUICK ACTIONS
         ================================================= */}
 
-        <div className="quick-actions">
+        <section className="quick-section">
 
-          <Link
-            to="/upload"
-            className="quick-action"
-          >
-
-            <span className="quick-action-icon">
-              ↑
-            </span>
-
+          <div className="quick-section-header">
             <div>
+              <div className="section-label">
+                WORKSPACE
+              </div>
 
-              <strong>
-                Screen Resume
-              </strong>
+              <h2>
+                Quick Actions
+              </h2>
+            </div>
+          </div>
 
-              <span>
-                Upload and analyze a resume
+
+          <div className="quick-actions">
+
+            <Link
+              to="/upload"
+              className="quick-action primary-quick"
+            >
+              <span className="quick-action-icon">
+                ↑
               </span>
 
-            </div>
+              <div>
+                <strong>
+                  Screen Resume
+                </strong>
 
-          </Link>
+                <span>
+                  Upload and analyze a new resume
+                </span>
+              </div>
+
+              <span className="quick-arrow">
+                →
+              </span>
+            </Link>
 
 
-          <Link
-            to="/candidates"
-            className="quick-action"
-          >
-
-            <span className="quick-action-icon">
-              👥
-            </span>
-
-            <div>
-
-              <strong>
-                View Candidates
-              </strong>
-
-              <span>
-                Browse all screened candidates
+            <Link
+              to="/candidates"
+              className="quick-action"
+            >
+              <span className="quick-action-icon">
+                👥
               </span>
 
-            </div>
+              <div>
+                <strong>
+                  View Candidates
+                </strong>
 
-          </Link>
+                <span>
+                  Browse all screened candidates
+                </span>
+              </div>
+
+              <span className="quick-arrow">
+                →
+              </span>
+            </Link>
 
 
-          <Link
-            to="/jobs"
-            className="quick-action"
-          >
-
-            <span className="quick-action-icon">
-              💼
-            </span>
-
-            <div>
-
-              <strong>
-                Manage Jobs
-              </strong>
-
-              <span>
-                Create and manage job openings
+            <Link
+              to="/jobs"
+              className="quick-action"
+            >
+              <span className="quick-action-icon">
+                💼
               </span>
 
-            </div>
+              <div>
+                <strong>
+                  Manage Jobs
+                </strong>
 
-          </Link>
+                <span>
+                  Create and manage job openings
+                </span>
+              </div>
 
-        </div>
+              <span className="quick-arrow">
+                →
+              </span>
+            </Link>
+
+          </div>
+
+        </section>
 
       </div>
-
     </div>
   );
 }

@@ -1,166 +1,96 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api";
-
+import "./Auth.css";
 
 function Login() {
-
   const navigate = useNavigate();
 
-  // =====================================================
-  // STATE
-  // =====================================================
-
   const [username, setUsername] = useState("");
-
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-
 
   // =====================================================
   // CHECK EXISTING LOGIN
   // =====================================================
 
   useEffect(() => {
-
     const token = localStorage.getItem("token");
 
-    if (token === "admin-token") {
-
+    if (token) {
       navigate("/", {
-        replace: true
+        replace: true,
       });
-
     }
-
   }, [navigate]);
-
 
   // =====================================================
   // LOGIN
   // =====================================================
 
   const handleLogin = async (event) => {
-
     event.preventDefault();
 
     setError("");
 
-    // ---------------------------------------------------
-    // VALIDATION
-    // ---------------------------------------------------
-
     if (!username.trim()) {
-
-      setError(
-        "Please enter your username."
-      );
-
+      setError("Please enter your username.");
       return;
     }
 
     if (!password) {
-
-      setError(
-        "Please enter your password."
-      );
-
+      setError("Please enter your password.");
       return;
     }
 
     setLoading(true);
 
-    // ---------------------------------------------------
-    // LOGIN REQUEST
-    // ---------------------------------------------------
-
     try {
+      const response = await api.post("/auth/login", {
+        username: username.trim(),
+        password: password,
+      });
 
-      const response = await api.post(
-        "/auth/login",
-        {
-          username: username.trim(),
-          password: password
-        }
-      );
-
-      console.log(
-        "Login response:",
-        response.data
-      );
-
-
-      // -------------------------------------------------
-      // CHECK RESPONSE
-      // -------------------------------------------------
+      console.log("Login response:", response.data);
 
       if (
         response.data &&
         response.data.authenticated === true &&
         response.data.token
       ) {
-
-        // -----------------------------------------------
-        // SAVE TOKEN
-        // -----------------------------------------------
-
-        localStorage.setItem(
-          "token",
-          response.data.token
-        );
-
-        // -----------------------------------------------
-        // SAVE AUTH STATUS
-        // -----------------------------------------------
+        localStorage.setItem("token", response.data.token);
 
         localStorage.setItem(
           "authenticated",
           "true"
         );
 
-        // -----------------------------------------------
-        // SAVE USERNAME
-        // -----------------------------------------------
-
         localStorage.setItem(
           "username",
-          response.data.username
+          response.data.username || username.trim()
         );
 
-        console.log(
-          "Login successful"
+        // Remember login preference
+        localStorage.setItem(
+          "rememberMe",
+          rememberMe ? "true" : "false"
         );
-
-        console.log(
-          "Token:",
-          response.data.token
-        );
-
-        // -----------------------------------------------
-        // GO TO DASHBOARD
-        // -----------------------------------------------
 
         navigate("/", {
-          replace: true
+          replace: true,
         });
-
       } else {
-
         setError(
           "Invalid login response from server."
         );
-
       }
-
     } catch (error) {
-
-      console.error(
-        "Login error:",
-        error
-      );
+      console.error("Login error:", error);
 
       console.error(
         "Backend response:",
@@ -169,131 +99,368 @@ function Login() {
 
       setError(
         error.response?.data?.detail ||
-        "Unable to login. Please try again."
+          "Invalid username or password."
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
 
   // =====================================================
   // UI
   // =====================================================
 
   return (
+    <div className="auth-page">
 
-    <div className="login-page">
+      <div className="auth-container">
 
-      <div className="login-card">
+        {/* =================================================
+            LEFT BRAND PANEL
+        ================================================= */}
 
-        {/* TITLE */}
+        <section className="auth-brand">
 
-        <h1>
-          AI Resume Screening
-        </h1>
+          <div className="auth-brand-content">
 
-        <p>
-          Recruiter Login
-        </p>
+            {/* LOGO */}
 
+            <div className="auth-brand-logo">
 
-        {/* LOGIN FORM */}
+              <div className="auth-brand-logo-icon">
+                AI
+              </div>
 
-        <form onSubmit={handleLogin}>
+              <div className="auth-brand-logo-text">
+                <strong>ResumeAI</strong>
+                <span>
+                  Intelligent Resume Screening
+                </span>
+              </div>
 
-          {/* USERNAME */}
+            </div>
 
-          <label>
-            Username
-          </label>
+            {/* BADGE */}
 
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={(event) => {
+            <div className="auth-brand-badge">
+              AI-Powered Recruitment
+            </div>
 
-              setUsername(
-                event.target.value
-              );
+            {/* HEADING */}
 
-              setError("");
+            <h2>
+              Find the right{" "}
+              <span>talent faster.</span>
+            </h2>
 
-            }}
-            autoComplete="username"
-          />
-
-
-          {/* PASSWORD */}
-
-          <label>
-            Password
-          </label>
-
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(event) => {
-
-              setPassword(
-                event.target.value
-              );
-
-              setError("");
-
-            }}
-            autoComplete="current-password"
-          />
-
-
-          {/* ERROR */}
-
-          {error && (
-
-            <p className="error">
-              {error}
+            <p className="auth-brand-description">
+              Screen resumes, match candidates with
+              jobs, analyze skills, and make smarter
+              recruitment decisions using AI.
             </p>
 
-          )}
+            {/* FEATURES */}
+
+            <div className="auth-features">
+
+              <div className="auth-feature">
+
+                <div className="auth-feature-icon">
+                  ✓
+                </div>
+
+                <div className="auth-feature-content">
+                  <strong>
+                    Intelligent Resume Screening
+                  </strong>
+
+                  <span>
+                    Automatically analyze resumes
+                    using Machine Learning.
+                  </span>
+                </div>
+
+              </div>
 
 
-          {/* LOGIN BUTTON */}
+              <div className="auth-feature">
 
-          <button
-            type="submit"
-            disabled={loading}
-          >
+                <div className="auth-feature-icon">
+                  ✓
+                </div>
 
-            {loading
-              ? "Logging in..."
-              : "Login"}
+                <div className="auth-feature-content">
+                  <strong>
+                    Smart Job Matching
+                  </strong>
 
-          </button>
+                  <span>
+                    Match candidates with the most
+                    suitable job opportunities.
+                  </span>
+                </div>
 
-        </form>
+              </div>
 
-        {/* SIGNUP LINK */}
 
-        <p className="auth-switch">
-          Don't have an account?{" "}
-          <Link to="/signup">
-            Sign Up
-          </Link>
-        </p>
+              <div className="auth-feature">
+
+                <div className="auth-feature-icon">
+                  ✓
+                </div>
+
+                <div className="auth-feature-content">
+                  <strong>
+                    Skill Gap Analysis
+                  </strong>
+
+                  <span>
+                    Identify matched and missing
+                    skills instantly.
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="auth-brand-footer">
+            AI Resume Screening Platform © 2026
+          </div>
+
+        </section>
+
+
+        {/* =================================================
+            RIGHT LOGIN PANEL
+        ================================================= */}
+
+        <section className="auth-form-section">
+
+          <div className="auth-card">
+
+            {/* HEADER */}
+
+            <div className="auth-header">
+
+              <p className="auth-eyebrow">
+                Recruiter Portal
+              </p>
+
+              <h1>
+                Welcome back
+              </h1>
+
+              <p>
+                Sign in to continue to your
+                recruitment dashboard.
+              </p>
+
+            </div>
+
+
+            {/* FORM */}
+
+            <form
+              className="auth-form"
+              onSubmit={handleLogin}
+            >
+
+              {/* USERNAME */}
+
+              <div className="auth-field">
+
+                <label htmlFor="username">
+                  Username
+                </label>
+
+                <div className="auth-input-wrapper">
+
+                  <span className="auth-input-icon">
+                    👤
+                  </span>
+
+                  <input
+                    id="username"
+                    className="auth-input"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(event) => {
+                      setUsername(
+                        event.target.value
+                      );
+                      setError("");
+                    }}
+                    autoComplete="username"
+                  />
+
+                </div>
+
+              </div>
+
+
+              {/* PASSWORD */}
+
+              <div className="auth-field">
+
+                <div className="auth-password-row">
+
+                  <label htmlFor="password">
+                    Password
+                  </label>
+
+                </div>
+
+                <div className="auth-input-wrapper">
+
+                  <span className="auth-input-icon">
+                    🔒
+                  </span>
+
+                  <input
+                    id="password"
+                    className="auth-input auth-password-input"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(
+                        event.target.value
+                      );
+                      setError("");
+                    }}
+                    autoComplete="current-password"
+                  />
+
+                  <button
+                    type="button"
+                    className="auth-show-password"
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+                  >
+                    {showPassword
+                      ? "Hide"
+                      : "Show"}
+                  </button>
+
+                </div>
+
+              </div>
+
+
+              {/* REMEMBER ME */}
+
+              <div className="auth-options">
+
+                <input
+                  id="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) =>
+                    setRememberMe(
+                      event.target.checked
+                    )
+                  }
+                />
+
+                <label htmlFor="rememberMe">
+                  Remember me
+                </label>
+
+              </div>
+
+
+              {/* ERROR */}
+
+              {error && (
+                <div className="auth-error">
+                  <span>⚠</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+
+              {/* LOGIN BUTTON */}
+
+              <button
+                className="auth-button"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="auth-spinner"></span>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign in
+                    <span className="auth-button-arrow">
+                      →
+                    </span>
+                  </>
+                )}
+              </button>
+
+            </form>
+
+
+            {/* DIVIDER */}
+
+            <div className="auth-divider">
+              <span>OR</span>
+            </div>
+
+
+            {/* SIGNUP */}
+
+            <p className="auth-switch">
+
+              Don't have an account?{" "}
+
+              <Link to="/signup">
+                Create account
+              </Link>
+
+            </p>
+
+
+            {/* SECURITY */}
+
+            <div className="auth-security">
+
+              <span>🔒</span>
+
+              <span>
+                Your credentials are securely
+                processed by the platform.
+              </span>
+
+            </div>
+
+
+            <div className="auth-footer">
+              AI Resume Screening Platform
+            </div>
+
+          </div>
+
+        </section>
 
       </div>
 
     </div>
-
   );
-
 }
-
 
 export default Login;

@@ -1,0 +1,29 @@
+Python
+Java
+JavaScript
+C
+C++
+SQL
+MySQL
+HTML
+CSS
+React
+Node.js
+Express
+Flask
+Django
+Pandas
+NumPy
+Scikit-learn
+TensorFlow
+PyTorch
+Machine Learning
+Deep Learning
+Data Science
+Power BI
+Excel
+AWS
+Docker
+Git
+GitHub
+REST API

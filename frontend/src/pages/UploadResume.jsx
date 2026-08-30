@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
-
 import "./UploadResume.css";
 
-
 function UploadResume() {
-
   const navigate = useNavigate();
-
 
   // =====================================================
   // STATE
@@ -17,702 +13,601 @@ function UploadResume() {
   const [file, setFile] = useState(null);
 
   const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState("");
 
-  const [jobId, setJobId] = useState("");
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-  const [loadingJobs, setLoadingJobs] =
-    useState(true);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [result, setResult] =
-    useState(null);
-
-  const [error, setError] =
-    useState("");
-
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   // =====================================================
   // LOAD JOBS
   // =====================================================
 
   useEffect(() => {
-
-    loadJobs();
-
+    fetchJobs();
   }, []);
 
-
-  const loadJobs = async () => {
-
+  const fetchJobs = async () => {
     try {
-
       setLoadingJobs(true);
       setError("");
 
-      const response = await api.get(
-        "/jobs"
-      );
+      const response = await api.get("/jobs");
 
-      console.log(
-        "Jobs:",
-        response.data
-      );
+      console.log("Jobs:", response.data);
 
-
-      const jobsData =
+      setJobs(
         Array.isArray(response.data)
           ? response.data
-          : response.data?.jobs || [];
-
-
-      setJobs(jobsData);
-
-
-      // Select first job automatically
-
-      if (jobsData.length > 0) {
-
-        setJobId(
-          String(jobsData[0].id)
-        );
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Failed to load jobs:",
-        error
+          : []
       );
-
+    } catch (err) {
+      console.error("Failed to load jobs:", err);
 
       setError(
-
-        error.response?.data?.detail ||
-
-        "Unable to load jobs. Please try again."
-
+        err.response?.data?.detail ||
+          "Unable to load jobs."
       );
-
     } finally {
-
       setLoadingJobs(false);
-
     }
-
   };
 
+  // =====================================================
+  // FILE SELECT
+  // =====================================================
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    setMessage("");
+    setError("");
+
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    // Check PDF
+    if (
+      selectedFile.type !== "application/pdf" &&
+      !selectedFile.name
+        .toLowerCase()
+        .endsWith(".pdf")
+    ) {
+      setError("Please upload a PDF resume.");
+      setFile(null);
+      return;
+    }
+
+    // 10 MB limit
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setError(
+        "File size must be less than 10 MB."
+      );
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+  };
 
   // =====================================================
-  // SELECTED JOB
+  // JOB CHANGE
   // =====================================================
 
-  const selectedJob = jobs.find(
+  const handleJobChange = (event) => {
+    setSelectedJob(event.target.value);
+
+    setMessage("");
+    setError("");
+  };
+
+  // =====================================================
+  // GET SELECTED JOB
+  // =====================================================
+
+  const selectedJobData = jobs.find(
     (job) =>
-      String(job.id) ===
-      String(jobId)
+      String(job.id) === String(selectedJob)
   );
 
-
   // =====================================================
-  // GET REQUIRED SKILLS
+  // REQUIRED SKILLS
   // =====================================================
 
   const getRequiredSkills = () => {
-
-    if (!selectedJob) {
-
-      return "";
-
+    if (!selectedJobData) {
+      return [];
     }
 
+    const skills =
+      selectedJobData.required_skills;
 
-    if (
-      Array.isArray(
-        selectedJob.required_skills
-      )
-    ) {
-
-      return selectedJob.required_skills.join(
-        ", "
-      );
-
+    if (Array.isArray(skills)) {
+      return skills;
     }
 
+    if (typeof skills === "string") {
+      return skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean);
+    }
 
-    return (
-      selectedJob.required_skills ||
-      ""
-    );
-
+    return [];
   };
 
+  const requiredSkills =
+    getRequiredSkills();
 
   // =====================================================
-  // FILE SELECTION
+  // UPLOAD RESUME
   // =====================================================
 
-  const handleFileChange = (
-    event
-  ) => {
+  const handleUpload = async (event) => {
+    event.preventDefault();
 
-    const selectedFile =
-      event.target.files?.[0];
-
-
+    setMessage("");
     setError("");
-    setResult(null);
 
-
-    if (!selectedFile) {
-
-      setFile(null);
-
-      return;
-
-    }
-
-
-    // -----------------------------------------------
-    // CHECK PDF
-    // -----------------------------------------------
-
-    const isPDF =
-      selectedFile.type ===
-        "application/pdf" ||
-
-      selectedFile.name
-        .toLowerCase()
-        .endsWith(".pdf");
-
-
-    if (!isPDF) {
-
-      setError(
-        "Only PDF resume files are supported."
-      );
-
-      setFile(null);
-
-      event.target.value = "";
-
-      return;
-
-    }
-
-
-    // -----------------------------------------------
-    // FILE SIZE
-    // -----------------------------------------------
-
-    const maxSize =
-      10 * 1024 * 1024;
-
-
-    if (
-      selectedFile.size >
-      maxSize
-    ) {
-
-      setError(
-        "Resume file must be smaller than 10 MB."
-      );
-
-      setFile(null);
-
-      event.target.value = "";
-
-      return;
-
-    }
-
-
-    setFile(
-      selectedFile
-    );
-
-  };
-
-
-  // =====================================================
-  // UPLOAD + SCREEN
-  // =====================================================
-
-  const handleUpload = async () => {
-
-    setError("");
-    setResult(null);
-
-
-    // -----------------------------------------------
+    // ---------------------------------------------------
     // VALIDATE FILE
-    // -----------------------------------------------
+    // ---------------------------------------------------
 
     if (!file) {
-
       setError(
-        "Please select a PDF resume."
+        "Please select a resume PDF."
       );
-
       return;
-
     }
 
-
-    // -----------------------------------------------
+    // ---------------------------------------------------
     // VALIDATE JOB
-    // -----------------------------------------------
+    // ---------------------------------------------------
 
-    if (!jobId) {
-
+    if (!selectedJob) {
       setError(
         "Please select a job."
       );
-
       return;
-
     }
 
+    // ---------------------------------------------------
+    // FORM DATA
+    // ---------------------------------------------------
 
-    setLoading(true);
+    const formData = new FormData();
 
+    formData.append(
+      "file",
+      file
+    );
+
+    // IMPORTANT:
+    // Backend currently accepts:
+    //
+    // POST /resume/upload?job_id=1
+    //
+    // Therefore job_id goes in the URL.
+
+    // ---------------------------------------------------
+    // SEND REQUEST
+    // ---------------------------------------------------
 
     try {
-
-      // ---------------------------------------------
-      // CREATE FORM DATA
-      // ---------------------------------------------
-
-      const formData =
-        new FormData();
-
-
-      formData.append(
-        "file",
-        file
-      );
-
-
-      // ---------------------------------------------
-      // REQUIRED SKILLS
-      // ---------------------------------------------
-
-      const requiredSkills =
-        getRequiredSkills();
-
+      setUploading(true);
 
       console.log(
-        "Uploading resume..."
-      );
-
-      console.log(
-        "File:",
+        "Uploading resume:",
         file.name
       );
 
       console.log(
-        "Job ID:",
-        jobId
+        "Selected job:",
+        selectedJob
+      );
+
+      const response = await api.post(
+        `/resume/upload?job_id=${selectedJob}`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+      // -------------------------------------------------
+      // BACKEND RESULT
+      // -------------------------------------------------
+
+      const data = response.data;
+
+      console.log(
+        "================================"
       );
 
       console.log(
-        "Required Skills:",
-        requiredSkills
+        "SCREENING RESULT FROM BACKEND:"
       );
 
-
-      // ---------------------------------------------
-      // API REQUEST
-      // ---------------------------------------------
-
-      const response =
-        await api.post(
-
-          "/resume/upload",
-
-          formData,
-
-          {
-            params: {
-
-              job_id:
-                Number(jobId),
-
-              required_skills:
-                requiredSkills
-
-            }
-
-          }
-
-        );
-
+      console.log(data);
 
       console.log(
-        "Resume screening result:",
-        response.data
+        "================================"
       );
 
+      // -------------------------------------------------
+      // SUCCESS MESSAGE
+      // -------------------------------------------------
 
-      // ---------------------------------------------
-      // SAVE RESULT
-      // ---------------------------------------------
-
-      setResult(
-        response.data
+      setMessage(
+        "Resume uploaded and screened successfully!"
       );
 
+      // -------------------------------------------------
+      // GO TO SCREENING RESULT
+      // -------------------------------------------------
 
-      // ---------------------------------------------
-      // RESET FILE
-      // ---------------------------------------------
+      navigate(
+        "/screening-result",
+        {
+          state: {
+            result: data,
 
-      setFile(null);
+            // Also pass selected job information
+            job: selectedJobData || null,
 
-    } catch (error) {
+            // Pass filename
+            filename: file.name,
+          },
+        }
+      );
 
+    } catch (err) {
       console.error(
         "Resume upload failed:",
-        error
+        err
       );
-
 
       console.error(
         "Backend response:",
-        error.response?.data
+        err.response?.data
       );
 
-
-      // ---------------------------------------------
-      // AUTH ERROR
-      // ---------------------------------------------
+      // -------------------------------------------------
+      // ERROR HANDLING
+      // -------------------------------------------------
 
       if (
-        error.response?.status === 401
+        err.response?.status === 401
       ) {
-
-        localStorage.removeItem(
-          "token"
+        setError(
+          "Authentication required. Please login again."
         );
 
-        localStorage.removeItem(
-          "authenticated"
+      } else if (
+        err.response?.status === 404
+      ) {
+        setError(
+          "Upload endpoint not found. Check that the backend route is /resume/upload."
         );
 
-        localStorage.removeItem(
-          "username"
+      } else if (
+        err.response?.status === 422
+      ) {
+        const detail =
+          err.response?.data?.detail;
+
+        if (Array.isArray(detail)) {
+          setError(
+            detail
+              .map(
+                (item) =>
+                  item.msg ||
+                  "Invalid request"
+              )
+              .join(", ")
+          );
+        } else {
+          setError(
+            detail ||
+              "Invalid upload data."
+          );
+        }
+
+      } else {
+        setError(
+          err.response?.data?.detail ||
+            err.message ||
+            "Unable to upload resume."
         );
-
-
-        navigate(
-          "/login",
-          {
-            replace: true
-          }
-        );
-
-        return;
-
       }
 
-
-      // ---------------------------------------------
-      // DISPLAY ERROR
-      // ---------------------------------------------
-
-      setError(
-
-        error.response?.data?.detail ||
-
-        "Unable to process the resume."
-
-      );
-
     } finally {
-
-      setLoading(false);
-
+      setUploading(false);
     }
-
   };
 
-
   // =====================================================
-  // VIEW CANDIDATE
-  // =====================================================
-
-  const viewCandidate = () => {
-
-    if (
-      !result?.candidate_id
-    ) {
-
-      return;
-
-    }
-
-
-    navigate(
-      `/candidates/${result.candidate_id}`
-    );
-
-  };
-
-
-  // =====================================================
-  // UPLOAD ANOTHER RESUME
+  // RESET
   // =====================================================
 
-  const uploadAnother = () => {
-
+  const handleReset = () => {
     setFile(null);
-
-    setResult(null);
-
+    setSelectedJob("");
+    setMessage("");
     setError("");
 
+    const input =
+      document.getElementById(
+        "resume-file"
+      );
+
+    if (input) {
+      input.value = "";
+    }
   };
 
-
   // =====================================================
-  // UI
+  // RENDER
   // =====================================================
 
   return (
+    <div className="upload-resume-page">
 
-    <div className="upload-page">
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
-      <div className="upload-container">
+      <div className="upload-header">
 
+        <div>
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <div className="upload-header">
+          <span className="page-eyebrow">
+            AI RESUME SCREENING
+          </span>
 
           <h1>
             Upload Resume
           </h1>
 
           <p>
-            Upload a candidate resume
-            for AI-powered screening and
-            job matching.
+            Upload a candidate resume and
+            select a job to analyze their
+            skills, compatibility and
+            screening score.
           </p>
 
         </div>
 
+      </div>
+
+
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
+
+      <div className="upload-layout">
 
         {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {error && (
-
-          <div className="upload-error">
-
-            <strong>
-              Error
-            </strong>
-
-            <span>
-              {error}
-            </span>
-
-          </div>
-
-        )}
-
-
-        {/* =================================================
-            UPLOAD CARD
+            LEFT - UPLOAD
         ================================================= */}
 
         <div className="upload-card">
 
+          <div className="section-title">
 
-          {/* ---------------------------------------------
-              JOB
-          --------------------------------------------- */}
+            <div className="section-icon">
+              📄
+            </div>
 
-          <div className="form-group">
+            <div>
 
-            <label>
-              Select Job
-            </label>
+              <h2>
+                Resume
+              </h2>
+
+              <p>
+                Upload the candidate's PDF resume.
+              </p>
+
+            </div>
+
+          </div>
 
 
-            {loadingJobs ? (
+          {/* =================================================
+              FILE UPLOAD
+          ================================================= */}
 
-              <div className="loading-text">
+          <label
+            htmlFor="resume-file"
+            className={`upload-dropzone ${
+              file ? "has-file" : ""
+            }`}
+          >
 
-                Loading jobs...
+            <input
+              id="resume-file"
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={handleFileChange}
+              hidden
+              disabled={uploading}
+            />
 
-              </div>
+            {!file ? (
 
-            ) : jobs.length === 0 ? (
+              <>
+                <div className="upload-icon">
+                  ⬆
+                </div>
 
-              <div className="no-jobs">
+                <h3>
+                  Drop your resume here
+                </h3>
 
                 <p>
-                  No jobs available.
+                  or click to browse your computer
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate("/jobs")
-                  }
-                >
-                  Create a Job
-                </button>
-
-              </div>
+                <span className="upload-format">
+                  PDF only • Maximum 10 MB
+                </span>
+              </>
 
             ) : (
 
-              <select
+              <>
+                <div className="file-icon">
+                  📄
+                </div>
 
-                value={jobId}
+                <h3>
+                  {file.name}
+                </h3>
 
-                onChange={(event) =>
-                  setJobId(
-                    event.target.value
-                  )
-                }
+                <p>
+                  {(
+                    file.size /
+                    1024 /
+                    1024
+                  ).toFixed(2)}{" "}
+                  MB
+                </p>
 
-              >
-
-                <option value="">
-                  Select a job
-                </option>
-
-
-                {jobs.map(
-                  (job) => (
-
-                    <option
-                      key={job.id}
-                      value={job.id}
-                    >
-
-                      #{job.id} -{" "}
-                      {job.title}
-
-                    </option>
-
-                  )
-                )}
-
-              </select>
+                <span className="change-file">
+                  Click to change file
+                </span>
+              </>
 
             )}
 
+          </label>
+
+
+          {/* =================================================
+              JOB SELECTION
+          ================================================= */}
+
+          <div className="form-group">
+
+            <label htmlFor="job">
+              Select Job
+            </label>
+
+            <select
+              id="job"
+              value={selectedJob}
+              onChange={handleJobChange}
+              disabled={
+                loadingJobs ||
+                uploading
+              }
+            >
+
+              <option value="">
+                {loadingJobs
+                  ? "Loading jobs..."
+                  : "Select a job"}
+              </option>
+
+              {jobs.map((job) => (
+
+                <option
+                  key={job.id}
+                  value={job.id}
+                >
+                  {job.title}
+                </option>
+
+              ))}
+
+            </select>
+
           </div>
 
 
-          {/* ---------------------------------------------
+          {/* =================================================
               REQUIRED SKILLS
-          --------------------------------------------- */}
+          ================================================= */}
 
-          <div className="form-group">
+          <div className="required-skills-box">
 
-            <label>
-              Required Skills
-            </label>
+            <div className="required-skills-header">
 
-            <input
+              <div>
 
-              type="text"
+                <h3>
+                  Required Skills
+                </h3>
 
-              value={
-                getRequiredSkills()
-              }
+                <p>
+                  Skills required for the
+                  selected position.
+                </p>
 
-              readOnly
-
-              placeholder={
-                loadingJobs
-                  ? "Loading..."
-                  : "Select a job"
-              }
-
-            />
-
-          </div>
+              </div>
 
 
-          {/* ---------------------------------------------
-              FILE
-          --------------------------------------------- */}
+              {selectedJob && (
 
-          <div className="form-group">
-
-            <label>
-              Resume PDF
-            </label>
-
-
-            <div className="file-upload-box">
-
-              <input
-
-                id="resume-file"
-
-                type="file"
-
-                accept=".pdf,application/pdf"
-
-                onChange={
-                  handleFileChange
-                }
-
-              />
-
-
-              <label
-                htmlFor="resume-file"
-                className="file-label"
-              >
-
-                <span className="file-icon">
-                  📄
+                <span className="skill-count">
+                  {requiredSkills.length}
                 </span>
 
-                <span>
-                  Choose PDF Resume
-                </span>
-
-              </label>
+              )}
 
             </div>
 
 
-            {file && (
+            {!selectedJob ? (
 
-              <div className="selected-file">
-
-                <span>
-                  📄
-                </span>
-
-                <strong>
-                  {file.name}
-                </strong>
+              <div className="skills-placeholder">
 
                 <span>
-                  (
-                  {
-                    (
-                      file.size /
-                      1024 /
-                      1024
-                    ).toFixed(2)
-                  } MB)
+                  💡
                 </span>
+
+                <p>
+                  Select a job to see required
+                  skills.
+                </p>
+
+              </div>
+
+            ) : requiredSkills.length > 0 ? (
+
+              <div className="skill-tags">
+
+                {requiredSkills.map(
+                  (skill, index) => (
+
+                    <span
+                      key={`${skill}-${index}`}
+                      className="skill-tag"
+                    >
+                      ✓ {skill}
+                    </span>
+
+                  )
+                )}
+
+              </div>
+
+            ) : (
+
+              <div className="skills-placeholder">
+
+                <p>
+                  No required skills found
+                  for this job.
+                </p>
 
               </div>
 
@@ -721,441 +616,242 @@ function UploadResume() {
           </div>
 
 
-          {/* ---------------------------------------------
-              SCREEN BUTTON
-          --------------------------------------------- */}
+          {/* =================================================
+              MESSAGES
+          ================================================= */}
 
-          <button
+          {error && (
 
-            type="button"
+            <div className="upload-message error-message">
 
-            className="screen-button"
+              <span>
+                ⚠
+              </span>
 
-            onClick={
-              handleUpload
-            }
+              {error}
 
-            disabled={
+            </div>
 
-              loading ||
+          )}
 
-              loadingJobs ||
 
-              jobs.length === 0 ||
+          {message && (
 
-              !file ||
+            <div className="upload-message success-message">
 
-              !jobId
+              <span>
+                ✓
+              </span>
 
-            }
+              {message}
 
-          >
+            </div>
 
-            {loading ? (
+          )}
 
-              <>
-                <span className="button-spinner"></span>
 
-                Screening Resume...
-              </>
+          {/* =================================================
+              BUTTONS
+          ================================================= */}
 
-            ) : (
+          <div className="upload-actions">
 
-              <>
-                🤖 Screen Resume
-              </>
+            <button
+              type="button"
+              className="reset-button"
+              onClick={handleReset}
+              disabled={uploading}
+            >
+              Reset
+            </button>
 
-            )}
 
-          </button>
+            <button
+              type="button"
+              className="upload-button"
+              onClick={handleUpload}
+              disabled={
+                uploading ||
+                !file ||
+                !selectedJob
+              }
+            >
 
+              {uploading ? (
+
+                <>
+                  <span className="button-spinner"></span>
+                  Screening Resume...
+                </>
+
+              ) : (
+
+                <>
+                  🚀 Upload & Screen
+                </>
+
+              )}
+
+            </button>
+
+          </div>
 
         </div>
 
 
         {/* =================================================
-            RESULT
+            RIGHT - AI PROCESS
         ================================================= */}
 
-        {result && (
+        <div className="process-card">
 
-          <div className="result-card">
+          <div className="section-title">
 
-
-            {/* ---------------------------------------------
-                RESULT HEADER
-            --------------------------------------------- */}
-
-            <div className="result-header">
-
-              <div>
-
-                <h2>
-                  Screening Complete
-                </h2>
-
-                <p>
-                  Resume successfully
-                  processed by the AI system.
-                </p>
-
-              </div>
-
-              <div className="success-icon">
-                ✓
-              </div>
-
+            <div className="section-icon">
+              🤖
             </div>
 
+            <div>
 
-            {/* ---------------------------------------------
-                RESULT GRID
-            --------------------------------------------- */}
-
-            <div className="result-grid">
-
-
-              {/* CANDIDATE */}
-
-              <div className="result-box">
-
-                <span>
-                  Candidate ID
-                </span>
-
-                <strong>
-                  #{result.candidate_id}
-                </strong>
-
-              </div>
-
-
-              {/* SCORE */}
-
-              <div className="result-box">
-
-                <span>
-                  Resume Score
-                </span>
-
-                <strong>
-                  {result.score ?? 0}/100
-                </strong>
-
-              </div>
-
-
-              {/* MATCH */}
-
-              <div className="result-box">
-
-                <span>
-                  Job Match
-                </span>
-
-                <strong>
-                  {
-                    result.job_match
-                      ?.match_percentage ??
-                    result.match_percentage ??
-                    0
-                  }%
-                </strong>
-
-              </div>
-
-
-              {/* DECISION */}
-
-              <div className="result-box">
-
-                <span>
-                  Decision
-                </span>
-
-                <strong>
-
-                  {
-                    result.decision ||
-                    "REVIEW"
-                  }
-
-                </strong>
-
-              </div>
-
-
-              {/* ML PREDICTION */}
-
-              <div className="result-box">
-
-                <span>
-                  ML Prediction
-                </span>
-
-                <strong>
-
-                  {
-                    result.ml_prediction ||
-                    "REVIEW"
-                  }
-
-                </strong>
-
-              </div>
-
-
-              {/* ML CONFIDENCE */}
-
-              <div className="result-box">
-
-                <span>
-                  ML Confidence
-                </span>
-
-                <strong>
-
-                  {
-                    result.ml_confidence ??
-                    0
-                  }%
-
-                </strong>
-
-              </div>
-
-            </div>
-
-
-            {/* ---------------------------------------------
-                SYSTEM AGREEMENT
-            --------------------------------------------- */}
-
-            <div className="system-status">
-
-              <span>
-                AI Systems Agreement
-              </span>
-
-              <strong>
-
-                {
-                  result.systems_agree
-                    ? "✓ Systems Agree"
-                    : "⚠ Systems Differ"
-                }
-
-              </strong>
-
-            </div>
-
-
-            {/* ---------------------------------------------
-                SUMMARY
-            --------------------------------------------- */}
-
-            <div className="result-section">
-
-              <h3>
-                Resume Summary
-              </h3>
+              <h2>
+                AI Screening
+              </h2>
 
               <p>
-                {
-                  result.summary ||
-                  "No summary available."
-                }
+                What happens after upload?
               </p>
-
-            </div>
-
-
-            {/* ---------------------------------------------
-                MATCHED SKILLS
-            --------------------------------------------- */}
-
-            <div className="result-section">
-
-              <h3>
-                Matched Skills
-              </h3>
-
-              <div className="skill-list">
-
-                {
-                  result.skill_gap
-                    ?.matched_skills
-                    ?.length > 0
-
-                    ? result.skill_gap.matched_skills.map(
-                        (skill, index) => (
-
-                          <span
-                            className="skill matched"
-                            key={index}
-                          >
-
-                            ✓ {skill}
-
-                          </span>
-
-                        )
-                      )
-
-                    : (
-
-                      <p>
-                        No matched skills found.
-                      </p>
-
-                    )
-                }
-
-              </div>
-
-            </div>
-
-
-            {/* ---------------------------------------------
-                MISSING SKILLS
-            --------------------------------------------- */}
-
-            <div className="result-section">
-
-              <h3>
-                Missing Skills
-              </h3>
-
-              <div className="skill-list">
-
-                {
-                  result.skill_gap
-                    ?.missing_skills
-                    ?.length > 0
-
-                    ? result.skill_gap.missing_skills.map(
-                        (skill, index) => (
-
-                          <span
-                            className="skill missing"
-                            key={index}
-                          >
-
-                            ✗ {skill}
-
-                          </span>
-
-                        )
-                      )
-
-                    : (
-
-                      <p>
-                        No missing skills.
-                      </p>
-
-                    )
-                }
-
-              </div>
-
-            </div>
-
-
-            {/* ---------------------------------------------
-                RECOMMENDATIONS
-            --------------------------------------------- */}
-
-            {
-              result.skill_gap
-                ?.recommendations
-                ?.length > 0 && (
-
-                <div className="result-section">
-
-                  <h3>
-                    Recommendations
-                  </h3>
-
-                  <ul>
-
-                    {
-                      result.skill_gap.recommendations.map(
-                        (recommendation, index) => (
-
-                          <li key={index}>
-                            {recommendation}
-                          </li>
-
-                        )
-                      )
-                    }
-
-                  </ul>
-
-                </div>
-
-              )
-            }
-
-
-            {/* ---------------------------------------------
-                ACTIONS
-            --------------------------------------------- */}
-
-            <div className="result-actions">
-
-
-              {result.candidate_id && (
-
-                <button
-
-                  type="button"
-
-                  className="view-candidate-button"
-
-                  onClick={
-                    viewCandidate
-                  }
-
-                >
-
-                  View Candidate Details
-
-                </button>
-
-              )}
-
-
-              <button
-
-                type="button"
-
-                className="upload-another-button"
-
-                onClick={
-                  uploadAnother
-                }
-
-              >
-
-                Upload Another Resume
-
-              </button>
 
             </div>
 
           </div>
 
-        )}
+
+          <div className="process-list">
+
+            <div className="process-item">
+
+              <div className="process-number">
+                1
+              </div>
+
+              <div>
+
+                <h3>
+                  Resume Parsing
+                </h3>
+
+                <p>
+                  Extract candidate information
+                  and resume content.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="process-item">
+
+              <div className="process-number">
+                2
+              </div>
+
+              <div>
+
+                <h3>
+                  Skill Extraction
+                </h3>
+
+                <p>
+                  Identify technical skills
+                  from the resume.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="process-item">
+
+              <div className="process-number">
+                3
+              </div>
+
+              <div>
+
+                <h3>
+                  SBERT Matching
+                </h3>
+
+                <p>
+                  Compare the resume with
+                  the selected job semantically.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="process-item">
+
+              <div className="process-number">
+                4
+              </div>
+
+              <div>
+
+                <h3>
+                  AI Decision
+                </h3>
+
+                <p>
+                  Generate screening score,
+                  match percentage and decision.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              FEATURES
+          ================================================= */}
+
+          <div className="screening-features">
+
+            <div>
+              <span>✓</span>
+              Skill Matching
+            </div>
+
+            <div>
+              <span>✓</span>
+              SBERT Similarity
+            </div>
+
+            <div>
+              <span>✓</span>
+              Skill Gap Analysis
+            </div>
+
+            <div>
+              <span>✓</span>
+              Job Recommendations
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
 
     </div>
-
   );
-
 }
-
 
 export default UploadResume;

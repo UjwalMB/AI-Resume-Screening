@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api";
+import "./Jobs.css";
 
 function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -8,12 +9,14 @@ function Jobs() {
   const [description, setDescription] = useState("");
   const [skills, setSkills] = useState("");
 
+  const [search, setSearch] = useState("");
+  const [skillFilter, setSkillFilter] = useState("ALL");
+
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
 
   // =====================================================
   // LOAD JOBS
@@ -23,435 +26,694 @@ function Jobs() {
     fetchJobs();
   }, []);
 
-
   const fetchJobs = async () => {
     try {
-
       setLoading(true);
       setError("");
 
-      const response = await api.get(
-        "/jobs"
+      const response = await api.get("/jobs");
+
+      const data = response.data;
+
+      setJobs(
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.jobs)
+          ? data.jobs
+          : []
       );
-
-      setJobs(response.data);
-
-    } catch (error) {
-
-      console.error(
-        "Failed to load jobs:",
-        error
-      );
+    } catch (err) {
+      console.error("Failed to load jobs:", err);
 
       setError(
-        error.response?.data?.detail ||
-        "Unable to load jobs. Please check the backend."
+        err.response?.data?.detail ||
+          "Unable to load jobs. Please check the backend."
       );
-
     } finally {
-
       setLoading(false);
-
     }
   };
-
 
   // =====================================================
   // CREATE JOB
   // =====================================================
 
   const createJob = async (event) => {
-
     event.preventDefault();
 
     setError("");
     setMessage("");
 
-
-    // -----------------------------------------------------
-    // VALIDATION
-    // -----------------------------------------------------
-
     if (!title.trim()) {
-
-      setError(
-        "Please enter a job title."
-      );
-
+      setError("Please enter a job title.");
       return;
     }
-
 
     if (!description.trim()) {
-
-      setError(
-        "Please enter a job description."
-      );
-
+      setError("Please enter a job description.");
       return;
     }
-
 
     if (!skills.trim()) {
-
-      setError(
-        "Please enter required skills."
-      );
-
+      setError("Please enter required skills.");
       return;
     }
-
 
     setCreating(true);
 
-
     try {
+      const response = await api.post("/jobs/create", {
+        title: title.trim(),
+        description: description.trim(),
+        required_skills: skills.trim(),
+      });
 
-      await api.post(
-        "/jobs/create",
-        {
-          title: title.trim(),
+      console.log("Created job:", response.data);
 
-          description:
-            description.trim(),
-
-          required_skills:
-            skills.trim()
-        }
-      );
-
-
-      // ---------------------------------------------------
-      // SUCCESS
-      // ---------------------------------------------------
-
-      setMessage(
-        "Job created successfully."
-      );
-
-
-      // Clear form
+      setMessage("Job created successfully.");
 
       setTitle("");
       setDescription("");
       setSkills("");
 
-
-      // Reload jobs
-
       await fetchJobs();
-
-    } catch (error) {
-
-      console.error(
-        "Failed to create job:",
-        error
-      );
-
-      console.error(
-        "Backend response:",
-        error.response?.data
-      );
-
+    } catch (err) {
+      console.error("Failed to create job:", err);
 
       setError(
-        error.response?.data?.detail ||
-        "Unable to create job. Please check the backend."
+        err.response?.data?.detail ||
+          "Unable to create job. Please check the backend."
       );
-
     } finally {
-
       setCreating(false);
-
     }
   };
 
+  // =====================================================
+  // GET JOB SKILLS
+  // =====================================================
+
+  const getJobSkills = (job) => {
+    if (Array.isArray(job.required_skills)) {
+      return job.required_skills
+        .map((skill) => String(skill).trim())
+        .filter(Boolean);
+    }
+
+    if (typeof job.required_skills === "string") {
+      return job.required_skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  };
 
   // =====================================================
-  // PAGE
+  // ALL UNIQUE SKILLS
+  // =====================================================
+
+  const availableSkills = useMemo(() => {
+    const skillSet = new Set();
+
+    jobs.forEach((job) => {
+      getJobSkills(job).forEach((skill) => {
+        skillSet.add(skill);
+      });
+    });
+
+    return [...skillSet].sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase())
+    );
+  }, [jobs]);
+
+  // =====================================================
+  // FILTER JOBS
+  // =====================================================
+
+  const filteredJobs = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    return jobs.filter((job) => {
+      const jobSkills = getJobSkills(job);
+
+      const matchesSearch =
+        !searchText ||
+        String(job.title || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(job.description || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        jobSkills.some((skill) =>
+          skill.toLowerCase().includes(searchText)
+        );
+
+      const matchesSkill =
+        skillFilter === "ALL" ||
+        jobSkills.some(
+          (skill) =>
+            skill.toLowerCase() === skillFilter.toLowerCase()
+        );
+
+      return matchesSearch && matchesSkill;
+    });
+  }, [jobs, search, skillFilter]);
+
+  // =====================================================
+  // CLEAR FORM
+  // =====================================================
+
+  const clearForm = () => {
+    setTitle("");
+    setDescription("");
+    setSkills("");
+    setError("");
+    setMessage("");
+  };
+
+  // =====================================================
+  // CLEAR FILTERS
+  // =====================================================
+
+  const clearFilters = () => {
+    setSearch("");
+    setSkillFilter("ALL");
+  };
+
+  // =====================================================
+  // RENDER
   // =====================================================
 
   return (
-    <div className="dashboard">
-
+    <div className="jobs-page">
 
       {/* =================================================
           HEADER
       ================================================= */}
 
-      <h1>
-        Jobs
-      </h1>
+      <section className="jobs-page-header">
 
-      <p>
-        Create and manage job requirements
-        for AI resume screening.
-      </p>
+        <div className="jobs-header-content">
+
+          <span className="jobs-eyebrow">
+            RECRUITMENT MANAGEMENT
+          </span>
+
+          <h1>Jobs</h1>
+
+          <p>
+            Create, manage and match candidates
+            with your job requirements.
+          </p>
+
+        </div>
+
+        <div className="jobs-header-stat">
+
+          <div className="header-stat-icon">
+            💼
+          </div>
+
+          <div>
+            <span>Total Jobs</span>
+            <strong>{jobs.length}</strong>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =================================================
+          ALERTS
+      ================================================= */}
+
+      {message && (
+        <div className="jobs-alert success-alert">
+
+          <div className="alert-icon">
+            ✓
+          </div>
+
+          <div className="alert-content">
+            <strong>Success</strong>
+            <p>{message}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMessage("")}
+            aria-label="Close message"
+          >
+            ×
+          </button>
+
+        </div>
+      )}
+
+      {error && (
+        <div className="jobs-alert error-alert">
+
+          <div className="alert-icon">
+            !
+          </div>
+
+          <div className="alert-content">
+            <strong>Something went wrong</strong>
+            <p>{error}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setError("")}
+            aria-label="Close error"
+          >
+            ×
+          </button>
+
+        </div>
+      )}
 
 
       {/* =================================================
           CREATE JOB
       ================================================= */}
 
-      <div className="candidate-section">
-
-        <h2>
-          Create New Job
-        </h2>
-
+      <section className="create-job-card">
 
-        <form
-          onSubmit={createJob}
-        >
+        <div className="section-heading">
 
+          <div className="section-icon">
+            ✨
+          </div>
 
-          {/* =============================================
-              JOB TITLE
-          ============================================= */}
+          <div>
+            <h2>Create New Job</h2>
 
-          <label>
-            Job Title
-          </label>
+            <p>
+              Add a new position for AI-powered candidate matching.
+            </p>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Example: Python Developer"
-            value={title}
-            onChange={(event) =>
-              setTitle(
-                event.target.value
-              )
-            }
-            className="search-input"
-          />
+        </div>
 
+        <form onSubmit={createJob}>
 
-          {/* =============================================
-              DESCRIPTION
-          ============================================= */}
+          <div className="form-grid">
 
-          <label>
-            Job Description
-          </label>
+            <div className="form-group">
 
-          <textarea
-            placeholder="Example: Looking for a Python developer with backend development experience."
-            value={description}
-            onChange={(event) =>
-              setDescription(
-                event.target.value
-              )
-            }
-            className="search-input"
-            rows="5"
-          />
+              <label htmlFor="job-title">
+                Job Title
+              </label>
 
+              <input
+                id="job-title"
+                type="text"
+                placeholder="Python Developer"
+                value={title}
+                onChange={(event) =>
+                  setTitle(event.target.value)
+                }
+              />
 
-          {/* =============================================
-              REQUIRED SKILLS
-          ============================================= */}
+            </div>
 
-          <label>
-            Required Skills
-          </label>
 
-          <input
-            type="text"
-            placeholder="Python, FastAPI, SQL, Git, Docker"
-            value={skills}
-            onChange={(event) =>
-              setSkills(
-                event.target.value
-              )
-            }
-            className="search-input"
-          />
+            <div className="form-group">
 
+              <label htmlFor="required-skills">
+                Required Skills
+              </label>
 
-          {/* =============================================
-              CREATE BUTTON
-          ============================================= */}
+              <input
+                id="required-skills"
+                type="text"
+                placeholder="Python, FastAPI, SQL, Git"
+                value={skills}
+                onChange={(event) =>
+                  setSkills(event.target.value)
+                }
+              />
 
-          <button
-            type="submit"
-            className="job-button"
-            disabled={creating}
-          >
+              <span className="field-hint">
+                Separate skills using commas.
+              </span>
 
-            {creating
-              ? "Creating..."
-              : "Create Job"}
+            </div>
 
-          </button>
 
-        </form>
+            <div className="form-group full-width">
 
+              <label htmlFor="job-description">
+                Job Description
+              </label>
 
-        {/* =============================================
-            SUCCESS MESSAGE
-        ============================================= */}
+              <textarea
+                id="job-description"
+                placeholder="Describe the responsibilities, experience and requirements..."
+                value={description}
+                onChange={(event) =>
+                  setDescription(event.target.value)
+                }
+                rows={5}
+              />
 
-        {message && (
+              <span className="field-hint">
+                A detailed description improves SBERT semantic matching.
+              </span>
 
-          <p className="success">
-            {message}
-          </p>
-
-        )}
-
-
-        {/* =============================================
-            ERROR MESSAGE
-        ============================================= */}
-
-        {error && (
-
-          <p className="error">
-            {error}
-          </p>
-
-        )}
-
-      </div>
-
-
-      {/* =================================================
-          JOB LIST
-      ================================================= */}
-
-      <div className="candidate-section">
-
-        <h2>
-          Available Jobs
-        </h2>
-
-
-        {/* =============================================
-            LOADING
-        ============================================= */}
-
-        {loading ? (
-
-          <p>
-            Loading jobs...
-          </p>
-
-
-        ) : jobs.length === 0 ? (
-
-
-          /* =============================================
-             NO JOBS
-          ============================================= */
-
-          <p>
-            No jobs created yet.
-          </p>
-
-
-        ) : (
-
-
-          /* =============================================
-             JOB TABLE
-          ============================================= */
-
-          <div className="candidate-table">
-
-            <table>
-
-              <thead>
-
-                <tr>
-
-                  <th>
-                    Job ID
-                  </th>
-
-                  <th>
-                    Job Title
-                  </th>
-
-                  <th>
-                    Description
-                  </th>
-
-                  <th>
-                    Required Skills
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                {jobs.map(
-                  (job) => (
-
-                    <tr
-                      key={job.id}
-                    >
-
-
-                      {/* JOB ID */}
-
-                      <td>
-                        #{job.id}
-                      </td>
-
-
-                      {/* TITLE */}
-
-                      <td>
-
-                        <strong>
-                          {job.title}
-                        </strong>
-
-                      </td>
-
-
-                      {/* DESCRIPTION */}
-
-                      <td>
-
-                        {job.description ||
-                          "N/A"}
-
-                      </td>
-
-
-                      {/* SKILLS */}
-
-                      <td>
-
-                        {Array.isArray(
-                          job.required_skills
-                        )
-                          ? job.required_skills.join(
-                              ", "
-                            )
-                          : job.required_skills ||
-                            "N/A"}
-
-                      </td>
-
-                    </tr>
-
-                  )
-                )}
-
-              </tbody>
-
-            </table>
+            </div>
 
           </div>
 
+
+          <div className="form-actions">
+
+            <button
+              type="button"
+              className="clear-button"
+              onClick={clearForm}
+            >
+              Clear
+            </button>
+
+            <button
+              type="submit"
+              className="create-job-button"
+              disabled={creating}
+            >
+              {creating ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <span>+</span>
+                  Create Job
+                </>
+              )}
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+
+      {/* =================================================
+          JOB LIST TOOLBAR
+      ================================================= */}
+
+      <section className="jobs-list-section">
+
+        <div className="jobs-list-header">
+
+          <div>
+            <span className="section-mini-label">
+              JOB DATABASE
+            </span>
+
+            <h2>Available Jobs</h2>
+
+            <p>
+              Showing {filteredJobs.length} of {jobs.length} positions
+            </p>
+          </div>
+
+          <button
+            className="refresh-button"
+            onClick={fetchJobs}
+            disabled={loading}
+          >
+            <span>↻</span>
+            Refresh
+          </button>
+
+        </div>
+
+
+        {/* =================================================
+            SEARCH + FILTER
+        ================================================= */}
+
+        {!loading && jobs.length > 0 && (
+          <div className="jobs-filters">
+
+            <div className="search-box">
+
+              <span className="search-icon">
+                🔎
+              </span>
+
+              <input
+                type="text"
+                placeholder="Search jobs, descriptions or skills..."
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => setSearch("")}
+                >
+                  ×
+                </button>
+              )}
+
+            </div>
+
+
+            <select
+              className="skill-filter"
+              value={skillFilter}
+              onChange={(event) =>
+                setSkillFilter(event.target.value)
+              }
+            >
+              <option value="ALL">
+                All Skills
+              </option>
+
+              {availableSkills.map((skill) => (
+                <option
+                  value={skill}
+                  key={skill}
+                >
+                  {skill}
+                </option>
+              ))}
+
+            </select>
+
+
+            {(search || skillFilter !== "ALL") && (
+              <button
+                type="button"
+                className="reset-filter-button"
+                onClick={clearFilters}
+              >
+                Clear filters
+              </button>
+            )}
+
+          </div>
         )}
 
-      </div>
+
+        {/* =================================================
+            LOADING
+        ================================================= */}
+
+        {loading && (
+          <div className="jobs-loading">
+
+            <div className="loading-spinner"></div>
+
+            <h3>Loading jobs...</h3>
+
+            <p>
+              Fetching job requirements from the backend.
+            </p>
+
+          </div>
+        )}
+
+
+        {/* =================================================
+            EMPTY
+        ================================================= */}
+
+        {!loading && jobs.length === 0 && (
+          <div className="jobs-empty">
+
+            <div className="empty-icon">
+              💼
+            </div>
+
+            <h3>No jobs created yet</h3>
+
+            <p>
+              Create your first job above to start
+              matching resumes with job requirements.
+            </p>
+
+          </div>
+        )}
+
+
+        {/* =================================================
+            NO FILTER RESULTS
+        ================================================= */}
+
+        {!loading &&
+          jobs.length > 0 &&
+          filteredJobs.length === 0 && (
+            <div className="jobs-empty filter-empty">
+
+              <div className="empty-icon">
+                🔎
+              </div>
+
+              <h3>No matching jobs</h3>
+
+              <p>
+                Try a different search term or skill filter.
+              </p>
+
+              <button
+                type="button"
+                className="empty-clear-button"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
+
+            </div>
+          )}
+
+
+        {/* =================================================
+            JOB CARDS
+        ================================================= */}
+
+        {!loading && filteredJobs.length > 0 && (
+          <div className="jobs-grid">
+
+            {filteredJobs.map((job, index) => {
+
+              const jobSkills = getJobSkills(job);
+
+              const firstLetter =
+                job.title?.charAt(0)?.toUpperCase() || "J";
+
+              return (
+                <article
+                  className="job-card"
+                  key={job.id || index}
+                >
+
+                  {/* CARD TOP */}
+
+                  <div className="job-card-top">
+
+                    <div className="job-card-icon">
+                      {firstLetter}
+                    </div>
+
+                    <span className="job-card-id">
+                      JOB #{job.id || index + 1}
+                    </span>
+
+                  </div>
+
+
+                  {/* TITLE */}
+
+                  <h3>
+                    {job.title || "Untitled Position"}
+                  </h3>
+
+
+                  {/* DESCRIPTION */}
+
+                  <p className="job-description">
+
+                    {job.description ||
+                      "No job description available."}
+
+                  </p>
+
+
+                  {/* SKILLS */}
+
+                  <div className="job-skills-section">
+
+                    <div className="skills-header">
+
+                      <span className="skills-label">
+                        Required Skills
+                      </span>
+
+                      <span className="skills-number">
+                        {jobSkills.length}
+                      </span>
+
+                    </div>
+
+                    <div className="job-skills">
+
+                      {jobSkills.length > 0 ? (
+                        jobSkills.map((skill, skillIndex) => (
+                          <span
+                            className="job-skill"
+                            key={`${skill}-${skillIndex}`}
+                          >
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="no-skills">
+                          No skills specified
+                        </span>
+                      )}
+
+                    </div>
+
+                  </div>
+
+
+                  {/* FOOTER */}
+
+                  <div className="job-card-footer">
+
+                    <div className="job-status">
+                      <span className="status-dot"></span>
+                      Active
+                    </div>
+
+                    <span className="job-created-label">
+                      Available for screening
+                    </span>
+
+                  </div>
+
+                </article>
+              );
+            })}
+
+          </div>
+        )}
+
+      </section>
 
     </div>
   );

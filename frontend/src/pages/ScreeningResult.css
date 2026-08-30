@@ -1,0 +1,1279 @@
+/* =========================================================
+   SCREENING RESULT PAGE
+   ========================================================= */
+
+.screening-result-page {
+  min-height: calc(100vh - 70px);
+  background: #f5f7fb;
+  padding: 42px 24px 70px;
+  box-sizing: border-box;
+}
+
+.screening-result-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.screening-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 28px;
+}
+
+.page-eyebrow,
+.section-eyebrow {
+  display: block;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.screening-page-header h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+
+.screening-page-header p {
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.primary-action,
+.secondary-action {
+  border: none;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.primary-action {
+  background: #4f46e5;
+  color: white;
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.22);
+}
+
+.primary-action:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.secondary-action {
+  background: white;
+  color: #334155;
+  border: 1px solid #dbe2ea;
+}
+
+.secondary-action:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   INFO CARD
+   ========================================================= */
+
+.result-info-card {
+  display: grid;
+  grid-template-columns:
+    1.4fr
+    1fr
+    1.2fr
+    0.8fr;
+
+  gap: 0;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.05);
+
+  margin-bottom: 20px;
+}
+
+.result-info-item {
+  min-width: 0;
+  padding: 19px 22px;
+  border-right: 1px solid #edf0f4;
+}
+
+.result-info-item:last-child {
+  border-right: none;
+}
+
+.info-label {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 7px;
+}
+
+.info-value {
+  display: block;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filename-value {
+  color: #4f46e5;
+}
+
+
+/* =========================================================
+   DECISION BADGES
+   ========================================================= */
+
+.decision-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 11px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.decision-badge.shortlist,
+.decision-large strong.shortlist,
+.ml-result-item strong.shortlist {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.decision-badge.reject {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.decision-badge.review {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.decision-large strong.reject,
+.ml-result-item strong.reject {
+  color: #b91c1c;
+}
+
+.decision-large strong.review,
+.ml-result-item strong.review {
+  color: #b45309;
+}
+
+
+/* =========================================================
+   MAIN SCORE CARD
+   ========================================================= */
+
+.main-score-card {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  align-items: center;
+  gap: 45px;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+
+  padding: 34px 40px;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+
+  margin-bottom: 38px;
+}
+
+
+/* =========================================================
+   SCORE CIRCLE
+   ========================================================= */
+
+.score-circle-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-circle {
+  width: 190px;
+  height: 190px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  background:
+    conic-gradient(
+      #4f46e5 var(--score),
+      #e9edf3 var(--score)
+    );
+}
+
+.score-circle::before {
+  content: "";
+  position: absolute;
+
+  width: 152px;
+  height: 152px;
+
+  background: white;
+  border-radius: 50%;
+}
+
+.score-circle-inner {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-circle-inner strong {
+  color: #111827;
+  font-size: 38px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.score-circle-inner span {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.score-caption {
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   SCORE EXPLANATION
+   ========================================================= */
+
+.score-explanation h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.score-explanation > p {
+  max-width: 620px;
+
+  margin: 10px 0 20px;
+
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.decision-large {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding: 15px 17px;
+
+  background: #f8fafc;
+  border-radius: 11px;
+
+  width: fit-content;
+}
+
+.decision-large span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.decision-large strong {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
+.result-section {
+  margin-top: 38px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.section-heading p {
+  margin: 6px 0 0;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   SCORE BREAKDOWN
+   ========================================================= */
+
+.score-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.metric-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  padding: 20px;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.metric-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef2ff;
+  border-radius: 10px;
+
+  font-size: 17px;
+}
+
+.metric-value {
+  color: #4f46e5;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.metric-card h3 {
+  margin: 17px 0 6px;
+
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.metric-card p {
+  min-height: 45px;
+
+  margin: 0;
+
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.metric-progress {
+  width: 100%;
+  height: 7px;
+
+  margin-top: 17px;
+
+  background: #e9edf3;
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+.metric-progress span {
+  display: block;
+  height: 100%;
+
+  background: #4f46e5;
+  border-radius: inherit;
+}
+
+
+/* =========================================================
+   ML RESULT
+   ========================================================= */
+
+.ml-result-card {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.ml-result-item {
+  padding: 21px 24px;
+  border-right: 1px solid #edf0f4;
+}
+
+.ml-result-item:last-child {
+  border-right: none;
+}
+
+.ml-result-item span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.ml-result-item strong {
+  font-size: 17px;
+}
+
+.agreement-yes {
+  color: #15803d;
+}
+
+.agreement-no {
+  color: #dc2626;
+}
+
+
+/* =========================================================
+   SKILL ANALYSIS
+   ========================================================= */
+
+.skills-analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.skills-card {
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  padding: 22px;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.skills-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.skills-card-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skills-card-header h3 {
+  margin: 0;
+
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.skills-icon {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #dcfce7;
+  color: #15803d;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.missing-card .skills-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.skills-count {
+  min-width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #475569;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-pill {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 7px 11px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.skill-pill.matched {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.skill-pill.missing {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.skills-empty {
+  padding: 15px;
+
+  border-radius: 9px;
+
+  background: #f8fafc;
+
+  color: #94a3b8;
+
+  font-size: 13px;
+}
+
+.success-text {
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.description-card,
+.summary-card {
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  padding: 23px;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.description-card h3 {
+  margin: 0 0 10px;
+
+  color: #1e293b;
+  font-size: 17px;
+}
+
+.description-card p,
+.summary-card p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   RECOMMENDATIONS
+   ========================================================= */
+
+.recommendation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  padding: 14px 16px;
+}
+
+.recommendation-item > span {
+  flex: 0 0 auto;
+
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background: #eef2ff;
+  color: #4f46e5;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.recommendation-item p {
+  margin: 3px 0 0;
+
+  color: #475569;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   RECOMMENDED JOBS
+   ========================================================= */
+
+.recommended-heading {
+  align-items: center;
+}
+
+.jobs-count {
+  flex-shrink: 0;
+
+  padding: 7px 12px;
+
+  background: #eef2ff;
+  color: #4f46e5;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.recommended-jobs-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+.recommended-job-card {
+  min-width: 0;
+
+  background: white;
+
+  border: 1px solid #e3e8ef;
+  border-radius: 15px;
+
+  padding: 21px;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.recommended-job-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+
+/* =========================================================
+   JOB HEADER
+   ========================================================= */
+
+.recommended-job-header {
+  display: grid;
+
+  grid-template-columns:
+    38px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.job-rank {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef2ff;
+
+  border-radius: 10px;
+
+  color: #4f46e5;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.job-title-block {
+  min-width: 0;
+}
+
+.job-title-block h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
+  line-height: 1.3;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-title-block span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+.job-final-score {
+  min-width: 70px;
+
+  padding: 8px 10px;
+
+  border-radius: 9px;
+
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.job-final-score.high {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.job-final-score.medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.job-final-score.low {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   JOB DESCRIPTION
+   ========================================================= */
+
+.recommended-job-description {
+  margin: 0 0 17px;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   JOB SCORE DETAILS
+   ========================================================= */
+
+.job-score-details {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 10px;
+
+  margin-bottom: 16px;
+}
+
+.job-score-item {
+  background: #f8fafc;
+
+  border-radius: 10px;
+
+  padding: 12px;
+}
+
+.job-score-item span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #94a3b8;
+
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.job-score-item strong {
+  color: #1e293b;
+
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   JOB MATCH BAR
+   ========================================================= */
+
+.job-match-bar {
+  margin-bottom: 17px;
+}
+
+.job-match-bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.job-match-bar-top strong {
+  color: #4f46e5;
+}
+
+.job-progress {
+  width: 100%;
+  height: 6px;
+
+  background: #e9edf3;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+.job-progress span {
+  display: block;
+
+  height: 100%;
+
+  background: #4f46e5;
+
+  border-radius: inherit;
+}
+
+
+/* =========================================================
+   RECOMMENDED SKILLS
+   ========================================================= */
+
+.recommended-skills {
+  margin-top: 15px;
+}
+
+.recommended-skills h4 {
+  margin: 0 0 9px;
+
+  color: #475569;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recommended-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recommended-skill {
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.recommended-skill.matched {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.recommended-skill.missing {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.no-job-skills {
+  margin: 0;
+
+  color: #94a3b8;
+
+  font-size: 12px;
+}
+
+.no-job-skills.success {
+  color: #15803d;
+}
+
+
+/* =========================================================
+   NO JOBS
+   ========================================================= */
+
+.no-recommended-jobs {
+  background: white;
+
+  border: 1px dashed #cbd5e1;
+
+  border-radius: 14px;
+
+  padding: 35px;
+
+  text-align: center;
+}
+
+.no-recommended-jobs > div {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.no-recommended-jobs h3 {
+  margin: 0 0 7px;
+
+  color: #334155;
+}
+
+.no-recommended-jobs p {
+  margin: 0;
+
+  color: #94a3b8;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 11px;
+
+  margin-top: 42px;
+
+  padding-top: 25px;
+
+  border-top: 1px solid #e2e8f0;
+}
+
+
+/* =========================================================
+   EMPTY RESULT
+   ========================================================= */
+
+.empty-result-card {
+  max-width: 520px;
+
+  margin: 100px auto;
+
+  padding: 45px 35px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 18px;
+
+  text-align: center;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.empty-result-icon {
+  font-size: 42px;
+
+  margin-bottom: 15px;
+}
+
+.empty-result-card h1 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 25px;
+}
+
+.empty-result-card p {
+  margin: 10px 0 22px;
+
+  color: #64748b;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
+  .score-breakdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .result-info-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .result-info-item:nth-child(2) {
+    border-right: none;
+  }
+
+  .result-info-item:nth-child(-n + 2) {
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  .result-info-item:nth-child(3) {
+    border-bottom: none;
+  }
+
+  .main-score-card {
+    grid-template-columns: 270px 1fr;
+    gap: 30px;
+  }
+}
+
+
+@media (max-width: 850px) {
+
+  .screening-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .main-score-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .score-explanation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .score-explanation > p {
+    text-align: center;
+  }
+
+  .skills-analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommended-jobs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 650px) {
+
+  .screening-result-page {
+    padding: 25px 14px 50px;
+  }
+
+  .screening-page-header h1 {
+    font-size: 29px;
+  }
+
+  .result-info-card {
+    grid-template-columns: 1fr;
+  }
+
+  .result-info-item {
+    border-right: none;
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  .result-info-item:last-child {
+    border-bottom: none;
+  }
+
+  .score-breakdown-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ml-result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ml-result-item {
+    border-right: none;
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  .ml-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .main-score-card {
+    padding: 28px 20px;
+  }
+
+  .score-circle {
+    width: 165px;
+    height: 165px;
+  }
+
+  .score-circle::before {
+    width: 132px;
+    height: 132px;
+  }
+
+  .score-circle-inner strong {
+    font-size: 32px;
+  }
+
+  .recommended-job-header {
+    grid-template-columns: 36px 1fr;
+  }
+
+  .job-final-score {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 2px;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .result-actions button {
+    width: 100%;
+  }
+}

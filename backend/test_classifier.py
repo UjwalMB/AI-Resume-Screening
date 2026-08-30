@@ -1,20 +1,39 @@
+from app.services.parser import extract_text_from_pdf
+from app.services.preprocessing import (
+    preprocess_text,
+    split_into_sentences
+)
 from app.services.classifier import classify_sentence
 
 
-sentences = [
-    "I completed my B.E in Computer Science.",
-    "I have experience building web applications.",
-    "My skills include Python, JavaScript and SQL.",
-    "I completed a Python certification.",
-    "I am looking for a software developer position.",
-    "Professional summary: Computer Science graduate with web development skills."
-]
+file_path = "uploads/961af37d_final resume.pdf"
+
+
+# Extract PDF text
+raw_text = extract_text_from_pdf(file_path)
+
+
+# Preprocess
+clean_text = preprocess_text(raw_text)
+
+
+# Split sentences
+sentences = split_into_sentences(clean_text)
+
+
+print("\n==============================")
+print("CLASSIFIER TEST")
+print("==============================")
 
 
 for sentence in sentences:
 
     category = classify_sentence(sentence)
 
-    print(f"Sentence: {sentence}")
-    print(f"Category: {category}")
-    print("-------------------------")
+    print("\nCATEGORY:", category)
+    print("TEXT:", sentence)
+
+
+print("\n==============================")
+print("TOTAL SENTENCES:", len(sentences))
+print("==============================")

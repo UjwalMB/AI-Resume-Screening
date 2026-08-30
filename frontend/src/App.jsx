@@ -7,6 +7,7 @@ import CandidateDetails from "./pages/CandidateDetails";
 import Jobs from "./pages/Jobs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ScreeningResult from "./pages/ScreeningResult";
 
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -103,6 +104,10 @@ function App() {
               <CandidateDetails />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/screening-result"
+          element={<ScreeningResult />}
         />
 
       </Routes>

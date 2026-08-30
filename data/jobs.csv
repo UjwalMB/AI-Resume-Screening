@@ -1,0 +1,8 @@
+job_title,skills,description
+Python Developer,"Python,SQL,Flask,Pandas,NumPy","Develop Python applications and backend services"
+Data Analyst,"Python,SQL,Pandas,NumPy,Power BI,Excel","Analyze data and create business insights"
+Data Scientist,"Python,SQL,Pandas,NumPy,Machine Learning,Statistics","Build data science and machine learning solutions"
+Machine Learning Engineer,"Python,Machine Learning,TensorFlow,Scikit-learn,SQL","Build and deploy machine learning models"
+Backend Developer,"Python,Flask,Django,SQL,REST API","Develop backend applications and APIs"
+Frontend Developer,"HTML,CSS,JavaScript,React","Develop modern web interfaces"
+Full Stack Developer,"HTML,CSS,JavaScript,React,Node.js,SQL","Develop complete web applications"
