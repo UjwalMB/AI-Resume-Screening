@@ -32,7 +32,7 @@ function Candidates() {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/candidates");
+      const response = await api.get("/candidates/");
 
       console.log("Candidates API:", response.data);
 

@@ -51,7 +51,7 @@ function Dashboard() {
       });
 
       const candidatesResponse =
-        await api.get("/candidates");
+        await api.get("/candidates/");
 
       const candidateData =
         Array.isArray(candidatesResponse.data)

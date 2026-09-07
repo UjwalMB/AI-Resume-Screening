@@ -6,13 +6,6 @@ import joblib
 # PROJECT ROOT
 # =========================================================
 
-# __file__:
-# backend/app/services/ml_service.py
-#
-# Go up:
-# services -> app -> backend
-#
-
 BACKEND_DIR = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
@@ -23,7 +16,7 @@ BACKEND_DIR = os.path.abspath(
 
 
 # =========================================================
-# MODEL PATH
+# MODEL PATHS
 # =========================================================
 
 MODEL_PATH = os.path.join(
@@ -40,59 +33,83 @@ VECTORIZER_PATH = os.path.join(
 
 
 # =========================================================
-# DEBUG PATHS
+# LOAD MODEL SAFELY
 # =========================================================
+
+model = None
+vectorizer = None
+
 
 print("\n==============================")
-print("ML MODEL")
+print("AI RESUME ML SERVICE")
 print("==============================")
-
-print(
-    "Model:",
-    MODEL_PATH
-)
-
-print(
-    "Vectorizer:",
-    VECTORIZER_PATH
-)
+print("Model:", MODEL_PATH)
+print("Vectorizer:", VECTORIZER_PATH)
 
 
-# =========================================================
-# CHECK FILES
-# =========================================================
+# ---------------------------------------------------------
+# Load vectorizer
+# ---------------------------------------------------------
 
-if not os.path.exists(MODEL_PATH):
+try:
 
-    raise FileNotFoundError(
-        f"ML model not found: {MODEL_PATH}"
+    if os.path.exists(VECTORIZER_PATH):
+
+        vectorizer = joblib.load(
+            VECTORIZER_PATH
+        )
+
+        print("TF-IDF vectorizer loaded successfully.")
+
+    else:
+
+        print(
+            "WARNING: TF-IDF vectorizer not found."
+        )
+
+except Exception as error:
+
+    print(
+        "WARNING: Could not load TF-IDF vectorizer:",
+        error
     )
 
+    vectorizer = None
 
-if not os.path.exists(VECTORIZER_PATH):
 
-    raise FileNotFoundError(
-        f"TF-IDF vectorizer not found: {VECTORIZER_PATH}"
+# ---------------------------------------------------------
+# Load ML model
+# ---------------------------------------------------------
+
+try:
+
+    if os.path.exists(MODEL_PATH):
+
+        model = joblib.load(
+            MODEL_PATH
+        )
+
+        print("Resume ML model loaded successfully.")
+
+    else:
+
+        print(
+            "WARNING: Resume ML model not found."
+        )
+
+except Exception as error:
+
+    print(
+        "WARNING: Could not load resume ML model:",
+        error
     )
 
+    model = None
 
-# =========================================================
-# LOAD MODEL
-# =========================================================
 
-print("Loading ML model...")
-
-model = joblib.load(
-    MODEL_PATH
-)
-
-vectorizer = joblib.load(
-    VECTORIZER_PATH
-)
-
-print(
-    "ML model loaded successfully."
-)
+print("==============================")
+print("ML SERVICE READY")
+print("==============================\n")
 
 
 # =========================================================
@@ -100,6 +117,18 @@ print(
 # =========================================================
 
 def predict_resume(resume_text):
+
+    """
+    Predict whether a resume should be shortlisted.
+
+    The ML model is optional. If the saved model is
+    incompatible or unavailable, the application returns
+    REVIEW instead of crashing the complete upload process.
+    """
+
+    # -----------------------------------------------------
+    # Empty resume
+    # -----------------------------------------------------
 
     if not resume_text:
 
@@ -110,39 +139,84 @@ def predict_resume(resume_text):
 
 
     # -----------------------------------------------------
-    # TF-IDF
+    # Model unavailable
     # -----------------------------------------------------
 
-    vectorized_text = vectorizer.transform(
-        [resume_text]
-    )
+    if model is None or vectorizer is None:
 
+        print(
+            "ML model unavailable. Returning REVIEW."
+        )
 
-    # -----------------------------------------------------
-    # PREDICTION
-    # -----------------------------------------------------
-
-    prediction = model.predict(
-        vectorized_text
-    )[0]
+        return {
+            "prediction": "REVIEW",
+            "confidence": 0.0
+        }
 
 
     # -----------------------------------------------------
-    # CONFIDENCE
+    # TF-IDF transformation
+    # -----------------------------------------------------
+
+    try:
+
+        vectorized_text = vectorizer.transform(
+            [resume_text]
+        )
+
+    except Exception as error:
+
+        print(
+            "TF-IDF transformation error:",
+            error
+        )
+
+        return {
+            "prediction": "REVIEW",
+            "confidence": 0.0
+        }
+
+
+    # -----------------------------------------------------
+    # Prediction
+    # -----------------------------------------------------
+
+    try:
+
+        prediction = model.predict(
+            vectorized_text
+        )[0]
+
+    except Exception as error:
+
+        print(
+            "ML prediction error:",
+            error
+        )
+
+        return {
+            "prediction": "REVIEW",
+            "confidence": 0.0
+        }
+
+
+    # -----------------------------------------------------
+    # Confidence
     # -----------------------------------------------------
 
     confidence = 0.0
 
     try:
 
-        probabilities = model.predict_proba(
-            vectorized_text
-        )[0]
+        if hasattr(model, "predict_proba"):
 
-        confidence = (
-            max(probabilities)
-            * 100
-        )
+            probabilities = model.predict_proba(
+                vectorized_text
+            )[0]
+
+            confidence = (
+                max(probabilities) * 100
+            )
 
     except Exception as error:
 
@@ -153,13 +227,22 @@ def predict_resume(resume_text):
 
 
     # -----------------------------------------------------
-    # RETURN
+    # Normalize prediction
+    # -----------------------------------------------------
+
+    prediction_text = str(
+        prediction
+    ).upper().strip()
+
+
+    # -----------------------------------------------------
+    # Return
     # -----------------------------------------------------
 
     return {
 
         "prediction":
-            str(prediction).upper(),
+            prediction_text,
 
         "confidence":
             round(

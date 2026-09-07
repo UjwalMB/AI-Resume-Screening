@@ -1,5 +1,13 @@
 import os
 import psycopg
+from dotenv import load_dotenv
+
+
+# --------------------------------------------------
+# Load environment variables from backend/.env
+# --------------------------------------------------
+
+load_dotenv()
 
 
 # --------------------------------------------------
@@ -8,7 +16,7 @@ import psycopg
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "dbname=resume_screening user=ujwal host=localhost port=5432"
+    "dbname=resume_screening user=ujwal password=password host=localhost port=5432"
 )
 
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./ScreeningResult.css";
 
@@ -6,145 +7,259 @@ function ScreeningResult() {
   const navigate = useNavigate();
 
   const result = location.state?.result || {};
-  const selectedJob = location.state?.job || {};
-
-  const filename =
-    location.state?.filename ||
-    result.filename ||
-    "Resume";
 
   // =====================================================
-  // HELPERS
+  // SAFE VALUE HELPERS
   // =====================================================
 
-  const getNumber = (...values) => {
-    for (const value of values) {
-      if (
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-      ) {
-        const number = Number(value);
+  const safeText = (value, fallback = "") => {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
 
-        if (!Number.isNaN(number)) {
-          return number;
-        }
+    if (typeof value === "string") {
+      return value;
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => safeText(item))
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    if (typeof value === "object") {
+      if (value.recommendation) {
+        return safeText(value.recommendation);
+      }
+
+      if (value.skill) {
+        return safeText(value.skill);
+      }
+
+      if (value.title) {
+        return safeText(value.title);
+      }
+
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return fallback;
       }
     }
 
-    return 0;
+    return fallback;
   };
 
+  const safeNumber = (value, fallback = 0) => {
+    const number = Number(value);
+
+    return Number.isFinite(number)
+      ? number
+      : fallback;
+  };
+
+  const safeArray = (value) => {
+    return Array.isArray(value)
+      ? value
+      : [];
+  };
+
+  // =====================================================
+  // BASIC RESULT DATA
+  // =====================================================
+
+  const candidateId =
+    result.candidate_id ?? null;
+
+  const candidateCode =
+    safeText(
+      result.candidate_code,
+      "N/A"
+    );
+
+  const filename =
+    safeText(
+      result.filename,
+      "Resume"
+    );
+
+  const finalScore =
+    safeNumber(result.score);
+
+  const resumeQualityScore =
+    safeNumber(
+      result.resume_quality_score
+    );
+
+  const sbertSimilarity =
+    safeNumber(
+      result.sbert_similarity
+    );
+
+  const mlPrediction =
+    safeText(
+      result.ml_prediction,
+      "REVIEW"
+    );
+
+  const mlConfidence =
+    safeNumber(
+      result.ml_confidence
+    );
+
+  const decision =
+    safeText(
+      result.decision,
+      "REVIEW"
+    );
+
+  const summary =
+    safeText(
+      result.summary,
+      "No resume summary available."
+    );
+
+  // =====================================================
+  // RESUME SKILLS
+  // =====================================================
+
+  const resumeSkills =
+    safeArray(result.skills)
+      .map((skill) =>
+        safeText(skill)
+      )
+      .filter(Boolean);
+
+  // =====================================================
+  // JOB
+  // =====================================================
+
+  const job =
+    result.job &&
+    typeof result.job === "object"
+      ? result.job
+      : {};
+
+  const jobTitle =
+    safeText(
+      job.title,
+      "Recommended Position"
+    );
+
+  const jobDescription =
+    safeText(
+      job.description,
+      ""
+    );
+
+  // =====================================================
+  // JOB MATCH
+  // =====================================================
+
+  const jobMatch =
+    result.job_match &&
+    typeof result.job_match === "object"
+      ? result.job_match
+      : {};
+
+  const matchedSkills =
+    safeArray(
+      jobMatch.matched_skills
+    )
+      .map((skill) =>
+        safeText(skill)
+      )
+      .filter(Boolean);
+
+  const missingSkills =
+    safeArray(
+      jobMatch.missing_skills
+    )
+      .map((skill) =>
+        safeText(skill)
+      )
+      .filter(Boolean);
+
+  const matchPercentage =
+    safeNumber(
+      result.job_match_score ??
+        jobMatch.match_percentage
+    );
+
+  // =====================================================
+  // SKILL GAP
+  // =====================================================
+
+  const skillGap =
+    result.skill_gap &&
+    typeof result.skill_gap === "object"
+      ? result.skill_gap
+      : {};
+
+  const recommendations =
+    safeArray(
+      skillGap.recommendations
+    );
+
+  // =====================================================
+  // RECOMMENDED JOBS
+  // =====================================================
+
+  const recommendedJobs =
+    safeArray(
+      result.recommended_jobs
+    );
+
+  // =====================================================
+  // FORMATTERS
+  // =====================================================
+
   const formatScore = (value) => {
-    return getNumber(value).toFixed(2);
+    return safeNumber(value)
+      .toFixed(2);
+  };
+
+  const getScoreLevel = (score) => {
+    if (score >= 75) {
+      return "score-high";
+    }
+
+    if (score >= 50) {
+      return "score-medium";
+    }
+
+    return "score-low";
   };
 
   const getDecisionClass = (value) => {
-    const decision = String(value || "REVIEW")
-      .toUpperCase()
-      .trim();
+    const decisionValue =
+      String(value)
+        .toUpperCase();
 
-    if (decision === "SHORTLIST") {
-      return "shortlist";
+    if (
+      decisionValue ===
+      "SHORTLIST"
+    ) {
+      return "decision-shortlist";
     }
 
-    if (decision === "REJECT") {
-      return "reject";
+    if (
+      decisionValue ===
+      "REVIEW"
+    ) {
+      return "decision-review";
     }
 
-    return "review";
+    return "decision-reject";
   };
-
-  // =====================================================
-  // SCORE DATA
-  // =====================================================
-
-  const finalScore = getNumber(
-    result.score,
-    result.final_score
-  );
-
-  const matchPercentage = getNumber(
-    result.match_percentage,
-    result.skill_match,
-    result.job_match?.match_percentage
-  );
-
-  const sbertSimilarity = getNumber(
-    result.sbert_similarity,
-    result.sbert_score,
-    result.job_sbert_score
-  );
-
-  const resumeQuality = getNumber(
-    result.resume_quality,
-    result.resume_quality_score
-  );
-
-  const mlConfidence = getNumber(
-    result.ml_confidence,
-    result.confidence
-  );
-
-  // =====================================================
-  // RESULT DATA
-  // =====================================================
-
-  const decision =
-    result.decision || "REVIEW";
-
-  const mlPrediction =
-    result.ml_prediction ||
-    result.prediction ||
-    "N/A";
-
-  const systemsAgree =
-    result.systems_agree;
-
-  const candidateId =
-    result.candidate_id;
-
-  const candidateCode =
-    result.candidate_code ||
-    `CAND-${candidateId || "N/A"}`;
-
-  const jobTitle =
-    result.selected_job?.title ||
-    result.job_title ||
-    result.job?.title ||
-    selectedJob.title ||
-    "Selected Job";
-
-  const jobDescription =
-    result.selected_job?.description ||
-    result.job?.description ||
-    selectedJob.description ||
-    "";
-
-  // =====================================================
-  // SKILLS
-  // =====================================================
-
-  const matchedSkills =
-    result.job_match?.matched_skills ||
-    result.matched_skills ||
-    result.skill_gap?.matched_skills ||
-    [];
-
-  const missingSkills =
-    result.job_match?.missing_skills ||
-    result.missing_skills ||
-    result.skill_gap?.missing_skills ||
-    [];
-
-  const recommendations =
-    result.skill_gap?.recommendations ||
-    [];
-
-  const recommendedJobs =
-    Array.isArray(result.recommended_jobs)
-      ? result.recommended_jobs
-      : [];
 
   // =====================================================
   // NO RESULT
@@ -153,483 +268,243 @@ function ScreeningResult() {
   if (!location.state?.result) {
     return (
       <div className="screening-result-page">
-        <div className="empty-result-card">
 
-          <div className="empty-result-icon">
-            📄
-          </div>
+        <div className="result-container">
 
-          <h1>
-            No Screening Result
-          </h1>
+          <section className="result-section">
 
-          <p>
-            Please upload and screen a resume
-            before viewing this page.
-          </p>
+            <div className="empty-state">
 
-          <button
-            type="button"
-            className="primary-action"
-            onClick={() => navigate("/upload")}
-          >
-            Upload Resume
-          </button>
+              <h2>
+                No Screening Result
+              </h2>
+
+              <p>
+                Please upload a resume first.
+              </p>
+
+              <button
+                type="button"
+                className="primary-action"
+                onClick={() =>
+                  navigate("/upload")
+                }
+              >
+                Upload Resume
+              </button>
+
+            </div>
+
+          </section>
 
         </div>
+
       </div>
     );
   }
 
   // =====================================================
-  // SCORE COLOR
-  // =====================================================
-
-  const getScoreLevel = (score) => {
-    if (score >= 75) return "high";
-    if (score >= 50) return "medium";
-    return "low";
-  };
-
-  // =====================================================
-  // RENDER
+  // MAIN UI
   // =====================================================
 
   return (
     <div className="screening-result-page">
 
-      <div className="screening-result-container">
+      <div className="result-container">
 
         {/* =================================================
-            PAGE HEADER
+            HEADER
         ================================================= */}
 
-        <div className="screening-page-header">
+        <div className="result-header">
 
           <div>
-            <div className="page-eyebrow">
+
+            <span className="page-eyebrow">
               AI RESUME SCREENING
-            </div>
+            </span>
 
             <h1>
               Screening Result
             </h1>
 
             <p>
-              AI-powered resume analysis and job matching
-              for <strong>{jobTitle}</strong>.
+              AI-powered resume analysis,
+              skill matching and job
+              recommendations.
             </p>
+
           </div>
 
-          <button
-            type="button"
-            className="secondary-action"
-            onClick={() => navigate("/upload")}
+          <div
+            className={`decision-badge ${getDecisionClass(
+              decision
+            )}`}
           >
-            + Screen Another Resume
-          </button>
-
-        </div>
-
-
-        {/* =================================================
-            RESUME / JOB INFO
-        ================================================= */}
-
-        <div className="result-info-card">
-
-          <div className="result-info-item">
-
-            <span className="info-label">
-              Resume
-            </span>
-
-            <strong
-              className="info-value filename-value"
-              title={filename}
-            >
-              {filename}
-            </strong>
-
-          </div>
-
-
-          <div className="result-info-item">
-
-            <span className="info-label">
-              Candidate
-            </span>
-
-            <strong className="info-value">
-              {candidateCode}
-            </strong>
-
-          </div>
-
-
-          <div className="result-info-item">
-
-            <span className="info-label">
-              Selected Job
-            </span>
-
-            <strong className="info-value">
-              {jobTitle}
-            </strong>
-
-          </div>
-
-
-          <div className="result-info-item">
-
-            <span className="info-label">
-              Decision
-            </span>
-
-            <span
-              className={`decision-badge ${getDecisionClass(
-                decision
-              )}`}
-            >
-              {decision}
-            </span>
-
+            {decision}
           </div>
 
         </div>
 
-
         {/* =================================================
-            MAIN SCORE SECTION
+            CANDIDATE INFORMATION
         ================================================= */}
 
-        <div className="main-score-card">
+        <section className="result-section">
 
-          <div className="score-circle-wrapper">
+          <div className="section-heading">
 
-            <div
-              className={`score-circle ${getScoreLevel(
-                finalScore
-              )}`}
-              style={{
-                "--score":
-                  `${Math.min(
-                    Math.max(finalScore, 0),
-                    100
-                  ) * 3.6}deg`
-              }}
-            >
+            <div>
 
-              <div className="score-circle-inner">
+              <span className="section-eyebrow">
+                CANDIDATE
+              </span>
 
-                <strong>
-                  {formatScore(finalScore)}
-                </strong>
+              <h2>
+                Candidate Information
+              </h2>
 
-                <span>
-                  / 100
-                </span>
-
-              </div>
-
-            </div>
-
-            <div className="score-caption">
-              Overall Screening Score
             </div>
 
           </div>
 
+          <div className="result-info-grid">
 
-          <div className="score-explanation">
+            <div className="result-info-item">
 
-            <h2>
-              {decision === "SHORTLIST"
-                ? "Strong Candidate Match"
-                : decision === "REVIEW"
-                ? "Candidate Needs Review"
-                : "Candidate Match Is Low"}
-            </h2>
-
-            <p>
-              The final score combines skill matching,
-              SBERT semantic similarity, resume quality,
-              and machine-learning confidence.
-            </p>
-
-
-            <div className="decision-large">
-
-              <span>
-                Final Decision
+              <span className="info-label">
+                Resume
               </span>
 
               <strong
-                className={getDecisionClass(
-                  decision
-                )}
+                className="info-value filename-value"
+                title={filename}
               >
-                {decision}
+                {filename}
               </strong>
 
             </div>
 
-          </div>
+            <div className="result-info-item">
 
-        </div>
-
-
-        {/* =================================================
-            SCORE BREAKDOWN
-        ================================================= */}
-
-        <section className="result-section">
-
-          <div className="section-heading">
-
-            <div>
-              <span className="section-eyebrow">
-                ANALYSIS
+              <span className="info-label">
+                Candidate
               </span>
 
-              <h2>
-                Score Breakdown
-              </h2>
-
-              <p>
-                How the AI system calculated the final
-                screening score.
-              </p>
-            </div>
-
-          </div>
-
-
-          <div className="score-breakdown-grid">
-
-            {/* SKILL MATCH */}
-
-            <div className="metric-card">
-
-              <div className="metric-top">
-                <div className="metric-icon">
-                  🎯
-                </div>
-
-                <span className="metric-value">
-                  {formatScore(matchPercentage)}%
-                </span>
-              </div>
-
-              <h3>
-                Skill Match
-              </h3>
-
-              <p>
-                Percentage of required job skills
-                found in the resume.
-              </p>
-
-              <div className="metric-progress">
-                <span
-                  style={{
-                    width: `${Math.min(
-                      Math.max(matchPercentage, 0),
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
+              <strong className="info-value">
+                {candidateCode}
+              </strong>
 
             </div>
 
+            <div className="result-info-item">
 
-            {/* SBERT */}
-
-            <div className="metric-card">
-
-              <div className="metric-top">
-                <div className="metric-icon">
-                  🧠
-                </div>
-
-                <span className="metric-value">
-                  {formatScore(sbertSimilarity)}%
-                </span>
-              </div>
-
-              <h3>
-                SBERT Similarity
-              </h3>
-
-              <p>
-                Semantic similarity between the resume
-                and selected job.
-              </p>
-
-              <div className="metric-progress">
-                <span
-                  style={{
-                    width: `${Math.min(
-                      Math.max(sbertSimilarity, 0),
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
-
-            </div>
-
-
-            {/* RESUME QUALITY */}
-
-            <div className="metric-card">
-
-              <div className="metric-top">
-                <div className="metric-icon">
-                  📄
-                </div>
-
-                <span className="metric-value">
-                  {formatScore(resumeQuality)}%
-                </span>
-              </div>
-
-              <h3>
-                Resume Quality
-              </h3>
-
-              <p>
-                Completeness and structure of the
-                submitted resume.
-              </p>
-
-              <div className="metric-progress">
-                <span
-                  style={{
-                    width: `${Math.min(
-                      Math.max(resumeQuality, 0),
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
-
-            </div>
-
-
-            {/* ML CONFIDENCE */}
-
-            <div className="metric-card">
-
-              <div className="metric-top">
-                <div className="metric-icon">
-                  🤖
-                </div>
-
-                <span className="metric-value">
-                  {formatScore(mlConfidence)}%
-                </span>
-              </div>
-
-              <h3>
-                ML Confidence
-              </h3>
-
-              <p>
-                Confidence of the machine-learning
-                classification model.
-              </p>
-
-              <div className="metric-progress">
-                <span
-                  style={{
-                    width: `${Math.min(
-                      Math.max(mlConfidence, 0),
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-            AI / ML RESULT
-        ================================================= */}
-
-        <section className="result-section">
-
-          <div className="section-heading">
-
-            <div>
-              <span className="section-eyebrow">
-                MACHINE LEARNING
+              <span className="info-label">
+                Best Job
               </span>
 
-              <h2>
-                AI Model Result
-              </h2>
+              <strong className="info-value">
+                {jobTitle}
+              </strong>
+
             </div>
 
-          </div>
+            <div className="result-info-item">
 
-
-          <div className="ml-result-card">
-
-            <div className="ml-result-item">
-
-              <span>
-                Model Prediction
+              <span className="info-label">
+                ML Prediction
               </span>
 
-              <strong
-                className={getDecisionClass(
-                  mlPrediction
-                )}
-              >
+              <strong className="info-value">
                 {mlPrediction}
               </strong>
 
             </div>
 
+          </div>
 
-            <div className="ml-result-item">
+        </section>
+
+        {/* =================================================
+            SCORE
+        ================================================= */}
+
+        <section className="result-section">
+
+          <div className="section-heading">
+
+            <div>
+
+              <span className="section-eyebrow">
+                AI EVALUATION
+              </span>
+
+              <h2>
+                Resume Score
+              </h2>
+
+            </div>
+
+          </div>
+
+          <div className="score-grid">
+
+            <div
+              className={`score-card ${getScoreLevel(
+                finalScore
+              )}`}
+            >
 
               <span>
-                Confidence
+                Overall Score
               </span>
 
               <strong>
-                {formatScore(mlConfidence)}%
+                {formatScore(
+                  finalScore
+                )}%
               </strong>
 
             </div>
 
-
-            <div className="ml-result-item">
+            <div className="score-card">
 
               <span>
-                System Agreement
+                Resume Quality
               </span>
 
-              <strong
-                className={
-                  systemsAgree === true
-                    ? "agreement-yes"
-                    : "agreement-no"
-                }
-              >
-                {systemsAgree === true
-                  ? "✓ Agree"
-                  : systemsAgree === false
-                  ? "✕ Different"
-                  : "N/A"}
+              <strong>
+                {formatScore(
+                  resumeQualityScore
+                )}%
+              </strong>
+
+            </div>
+
+            <div className="score-card">
+
+              <span>
+                Skill Match
+              </span>
+
+              <strong>
+                {formatScore(
+                  matchPercentage
+                )}%
+              </strong>
+
+            </div>
+
+            <div className="score-card">
+
+              <span>
+                SBERT Similarity
+              </span>
+
+              <strong>
+                {formatScore(
+                  sbertSimilarity
+                )}%
               </strong>
 
             </div>
@@ -638,9 +513,8 @@ function ScreeningResult() {
 
         </section>
 
-
         {/* =================================================
-            SKILLS
+            RESUME SKILLS
         ================================================= */}
 
         <section className="result-section">
@@ -648,22 +522,145 @@ function ScreeningResult() {
           <div className="section-heading">
 
             <div>
+
               <span className="section-eyebrow">
-                JOB FIT
+                SKILLS
               </span>
 
               <h2>
-                Skill Analysis
+                Detected Resume Skills
               </h2>
 
-              <p>
-                Skills found and skills that are still
-                required for this position.
-              </p>
+            </div>
+
+            <span className="jobs-count">
+              {resumeSkills.length} Skills
+            </span>
+
+          </div>
+
+          {resumeSkills.length > 0 ? (
+
+            <div className="skill-list">
+
+              {resumeSkills.map(
+                (skill, index) => (
+
+                  <span
+                    className="skill-pill"
+                    key={`${skill}-${index}`}
+                  >
+                    ✓ {skill}
+                  </span>
+
+                )
+              )}
+
+            </div>
+
+          ) : (
+
+            <div className="skills-empty">
+              No skills detected.
+            </div>
+
+          )}
+
+        </section>
+
+        {/* =================================================
+            BEST JOB
+        ================================================= */}
+
+        <section className="result-section">
+
+          <div className="section-heading">
+
+            <div>
+
+              <span className="section-eyebrow">
+                JOB MATCH
+              </span>
+
+              <h2>
+                Best Job Match
+              </h2>
+
             </div>
 
           </div>
 
+          <div className="description-card">
+
+            <h3>
+              {jobTitle}
+            </h3>
+
+            {jobDescription && (
+
+              <p>
+                {jobDescription}
+              </p>
+
+            )}
+
+            <div className="job-score-details">
+
+              <div className="job-score-item">
+
+                <span>
+                  Skill Match
+                </span>
+
+                <strong>
+                  {formatScore(
+                    matchPercentage
+                  )}%
+                </strong>
+
+              </div>
+
+              <div className="job-score-item">
+
+                <span>
+                  SBERT Similarity
+                </span>
+
+                <strong>
+                  {formatScore(
+                    sbertSimilarity
+                  )}%
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            MATCHED AND MISSING SKILLS
+        ================================================= */}
+
+        <section className="result-section">
+
+          <div className="section-heading">
+
+            <div>
+
+              <span className="section-eyebrow">
+                SKILL ANALYSIS
+              </span>
+
+              <h2>
+                Skill Match Analysis
+              </h2>
+
+            </div>
+
+          </div>
 
           <div className="skills-analysis-grid">
 
@@ -674,6 +671,7 @@ function ScreeningResult() {
               <div className="skills-card-header">
 
                 <div>
+
                   <span className="skills-icon">
                     ✓
                   </span>
@@ -681,6 +679,7 @@ function ScreeningResult() {
                   <h3>
                     Matched Skills
                   </h3>
+
                 </div>
 
                 <span className="skills-count">
@@ -689,19 +688,20 @@ function ScreeningResult() {
 
               </div>
 
-
               {matchedSkills.length > 0 ? (
 
                 <div className="skill-list">
 
                   {matchedSkills.map(
                     (skill, index) => (
+
                       <span
                         className="skill-pill matched"
                         key={`${skill}-${index}`}
                       >
                         ✓ {skill}
                       </span>
+
                     )
                   )}
 
@@ -717,7 +717,6 @@ function ScreeningResult() {
 
             </div>
 
-
             {/* MISSING */}
 
             <div className="skills-card missing-card">
@@ -725,6 +724,7 @@ function ScreeningResult() {
               <div className="skills-card-header">
 
                 <div>
+
                   <span className="skills-icon">
                     !
                   </span>
@@ -732,6 +732,7 @@ function ScreeningResult() {
                   <h3>
                     Missing Skills
                   </h3>
+
                 </div>
 
                 <span className="skills-count">
@@ -740,19 +741,20 @@ function ScreeningResult() {
 
               </div>
 
-
               {missingSkills.length > 0 ? (
 
                 <div className="skill-list">
 
                   {missingSkills.map(
                     (skill, index) => (
+
                       <span
                         className="skill-pill missing"
                         key={`${skill}-${index}`}
                       >
                         ✕ {skill}
                       </span>
+
                     )
                   )}
 
@@ -761,7 +763,7 @@ function ScreeningResult() {
               ) : (
 
                 <div className="skills-empty success-text">
-                  No missing skills. Excellent match!
+                  No missing skills.
                 </div>
 
               )}
@@ -772,24 +774,26 @@ function ScreeningResult() {
 
         </section>
 
-
         {/* =================================================
             JOB DESCRIPTION
         ================================================= */}
 
         {jobDescription && (
+
           <section className="result-section">
 
             <div className="section-heading">
 
               <div>
+
                 <span className="section-eyebrow">
-                  SELECTED POSITION
+                  POSITION
                 </span>
 
                 <h2>
                   Job Description
                 </h2>
+
               </div>
 
             </div>
@@ -807,11 +811,11 @@ function ScreeningResult() {
             </div>
 
           </section>
+
         )}
 
-
         {/* =================================================
-            RESUME SUMMARY
+            SUMMARY
         ================================================= */}
 
         <section className="result-section">
@@ -819,6 +823,7 @@ function ScreeningResult() {
           <div className="section-heading">
 
             <div>
+
               <span className="section-eyebrow">
                 RESUME ANALYSIS
               </span>
@@ -826,25 +831,23 @@ function ScreeningResult() {
               <h2>
                 Resume Summary
               </h2>
+
             </div>
 
           </div>
 
-
           <div className="summary-card">
 
             <p>
-              {result.summary ||
-                "No resume summary available."}
+              {summary}
             </p>
 
           </div>
 
         </section>
 
-
         {/* =================================================
-            SKILL GAP RECOMMENDATIONS
+            SKILL GAP
         ================================================= */}
 
         {recommendations.length > 0 && (
@@ -854,6 +857,7 @@ function ScreeningResult() {
             <div className="section-heading">
 
               <div>
+
                 <span className="section-eyebrow">
                   IMPROVEMENT
                 </span>
@@ -861,38 +865,41 @@ function ScreeningResult() {
                 <h2>
                   Skill Gap Recommendations
                 </h2>
+
               </div>
 
             </div>
 
-
             <div className="recommendation-list">
 
               {recommendations.map(
-                (recommendation, index) => (
+                (recommendation, index) => {
 
-                  <div
-                    className="recommendation-item"
-                    key={index}
-                  >
+                  const recommendationText =
+                    safeText(
+                      recommendation,
+                      "Improve this skill"
+                    );
 
-                    <span>
-                      {index + 1}
-                    </span>
+                  return (
 
-                    <p>
-                      {typeof recommendation ===
-                      "string"
-                        ? recommendation
-                        : `${recommendation.skill || "Skill"}: ${
-                            recommendation.recommendation ||
-                            ""
-                          }`}
-                    </p>
+                    <div
+                      className="recommendation-item"
+                      key={index}
+                    >
 
-                  </div>
+                      <span>
+                        {index + 1}
+                      </span>
 
-                )
+                      <p>
+                        {recommendationText}
+                      </p>
+
+                    </div>
+
+                  );
+                }
               )}
 
             </div>
@@ -900,7 +907,6 @@ function ScreeningResult() {
           </section>
 
         )}
-
 
         {/* =================================================
             RECOMMENDED JOBS
@@ -911,6 +917,7 @@ function ScreeningResult() {
           <div className="section-heading recommended-heading">
 
             <div>
+
               <span className="section-eyebrow">
                 JOB DISCOVERY
               </span>
@@ -920,9 +927,11 @@ function ScreeningResult() {
               </h2>
 
               <p>
-                Jobs ranked using your resume skills
-                and SBERT semantic similarity.
+                Jobs ranked using resume
+                skills and SBERT semantic
+                similarity.
               </p>
+
             </div>
 
             <span className="jobs-count">
@@ -931,25 +940,79 @@ function ScreeningResult() {
 
           </div>
 
-
           {recommendedJobs.length > 0 ? (
 
             <div className="recommended-jobs-grid">
 
               {recommendedJobs.map(
-                (job, index) => {
+                (jobItem, index) => {
 
-                  const jobScore = getNumber(
-                    job.final_score
-                  );
+                  const currentJob =
+                    jobItem &&
+                    typeof jobItem ===
+                    "object"
+                      ? jobItem
+                      : {};
+
+                  const currentTitle =
+                    safeText(
+                      currentJob.title,
+                      "Recommended Job"
+                    );
+
+                  const currentDescription =
+                    safeText(
+                      currentJob.description,
+                      ""
+                    );
+
+                  const currentJobId =
+                    safeText(
+                      currentJob.job_id,
+                      "N/A"
+                    );
+
+                  const currentFinalScore =
+                    safeNumber(
+                      currentJob.final_score
+                    );
+
+                  const currentSkillMatch =
+                    safeNumber(
+                      currentJob.skill_match
+                    );
+
+                  const currentSbert =
+                    safeNumber(
+                      currentJob.sbert_similarity
+                    );
+
+                  const currentMatched =
+                    safeArray(
+                      currentJob.matched_skills
+                    )
+                      .map((skill) =>
+                        safeText(skill)
+                      )
+                      .filter(Boolean);
+
+                  const currentMissing =
+                    safeArray(
+                      currentJob.missing_skills
+                    )
+                      .map((skill) =>
+                        safeText(skill)
+                      )
+                      .filter(Boolean);
 
                   return (
+
                     <article
                       className="recommended-job-card"
-                      key={`${job.job_id}-${index}`}
+                      key={`${currentJobId}-${index}`}
                     >
 
-                      {/* JOB HEADER */}
+                      {/* HEADER */}
 
                       <div className="recommended-job-header">
 
@@ -960,39 +1023,39 @@ function ScreeningResult() {
                         <div className="job-title-block">
 
                           <h3>
-                            {job.title ||
-                              "Recommended Job"}
+                            {currentTitle}
                           </h3>
 
                           <span>
-                            Job ID: #{job.job_id}
+                            Job ID: #
+                            {currentJobId}
                           </span>
 
                         </div>
 
                         <div
                           className={`job-final-score ${getScoreLevel(
-                            jobScore
+                            currentFinalScore
                           )}`}
                         >
-                          {formatScore(jobScore)}%
+                          {formatScore(
+                            currentFinalScore
+                          )}%
                         </div>
 
                       </div>
 
-
                       {/* DESCRIPTION */}
 
-                      {job.description && (
+                      {currentDescription && (
 
                         <p className="recommended-job-description">
-                          {job.description}
+                          {currentDescription}
                         </p>
 
                       )}
 
-
-                      {/* SCORE DETAILS */}
+                      {/* SCORES */}
 
                       <div className="job-score-details">
 
@@ -1004,12 +1067,11 @@ function ScreeningResult() {
 
                           <strong>
                             {formatScore(
-                              job.skill_match
+                              currentSkillMatch
                             )}%
                           </strong>
 
                         </div>
-
 
                         <div className="job-score-item">
 
@@ -1019,7 +1081,7 @@ function ScreeningResult() {
 
                           <strong>
                             {formatScore(
-                              job.sbert_similarity
+                              currentSbert
                             )}%
                           </strong>
 
@@ -1027,8 +1089,7 @@ function ScreeningResult() {
 
                       </div>
 
-
-                      {/* SCORE BAR */}
+                      {/* PROGRESS */}
 
                       <div className="job-match-bar">
 
@@ -1039,19 +1100,24 @@ function ScreeningResult() {
                           </span>
 
                           <strong>
-                            {formatScore(jobScore)}%
+                            {formatScore(
+                              currentFinalScore
+                            )}%
                           </strong>
 
                         </div>
 
                         <div className="job-progress">
 
-                          <span
+                          <div
                             style={{
                               width: `${Math.min(
-                                Math.max(jobScore, 0),
+                                Math.max(
+                                  currentFinalScore,
+                                  0
+                                ),
                                 100
-                              )}%`
+                              )}%`,
                             }}
                           />
 
@@ -1059,8 +1125,7 @@ function ScreeningResult() {
 
                       </div>
 
-
-                      {/* MATCHED SKILLS */}
+                      {/* MATCHED */}
 
                       <div className="recommended-skills">
 
@@ -1068,18 +1133,23 @@ function ScreeningResult() {
                           Matched Skills
                         </h4>
 
-                        {job.matched_skills?.length > 0 ? (
+                        {currentMatched.length > 0 ? (
 
                           <div className="recommended-skill-list">
 
-                            {job.matched_skills.map(
-                              (skill, skillIndex) => (
+                            {currentMatched.map(
+                              (
+                                skill,
+                                skillIndex
+                              ) => (
+
                                 <span
                                   className="recommended-skill matched"
-                                  key={skillIndex}
+                                  key={`${skill}-${skillIndex}`}
                                 >
                                   ✓ {skill}
                                 </span>
+
                               )
                             )}
 
@@ -1095,8 +1165,7 @@ function ScreeningResult() {
 
                       </div>
 
-
-                      {/* MISSING SKILLS */}
+                      {/* MISSING */}
 
                       <div className="recommended-skills">
 
@@ -1104,18 +1173,23 @@ function ScreeningResult() {
                           Missing Skills
                         </h4>
 
-                        {job.missing_skills?.length > 0 ? (
+                        {currentMissing.length > 0 ? (
 
                           <div className="recommended-skill-list">
 
-                            {job.missing_skills.map(
-                              (skill, skillIndex) => (
+                            {currentMissing.map(
+                              (
+                                skill,
+                                skillIndex
+                              ) => (
+
                                 <span
                                   className="recommended-skill missing"
-                                  key={skillIndex}
+                                  key={`${skill}-${skillIndex}`}
                                 >
                                   ✕ {skill}
                                 </span>
+
                               )
                             )}
 
@@ -1132,6 +1206,7 @@ function ScreeningResult() {
                       </div>
 
                     </article>
+
                   );
                 }
               )}
@@ -1142,17 +1217,13 @@ function ScreeningResult() {
 
             <div className="no-recommended-jobs">
 
-              <div>
-                🔎
-              </div>
-
               <h3>
                 No Recommended Jobs
               </h3>
 
               <p>
-                We could not find suitable jobs
-                for this resume.
+                We could not find suitable
+                jobs for this resume.
               </p>
 
             </div>
@@ -1160,7 +1231,6 @@ function ScreeningResult() {
           )}
 
         </section>
-
 
         {/* =================================================
             ACTIONS
@@ -1207,6 +1277,7 @@ function ScreeningResult() {
         </div>
 
       </div>
+
     </div>
   );
 }

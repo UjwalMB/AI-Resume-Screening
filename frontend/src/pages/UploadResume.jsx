@@ -13,7 +13,6 @@ function UploadResume() {
   const [file, setFile] = useState(null);
 
   const [jobs, setJobs] = useState([]);
-  const [selectedJob, setSelectedJob] = useState("");
 
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -36,7 +35,7 @@ function UploadResume() {
 
       const response = await api.get("/jobs");
 
-      console.log("Jobs:", response.data);
+      console.log("Jobs loaded:", response.data);
 
       setJobs(
         Array.isArray(response.data)
@@ -44,7 +43,10 @@ function UploadResume() {
           : []
       );
     } catch (err) {
-      console.error("Failed to load jobs:", err);
+      console.error(
+        "Failed to load jobs:",
+        err
+      );
 
       setError(
         err.response?.data?.detail ||
@@ -60,7 +62,8 @@ function UploadResume() {
   // =====================================================
 
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0];
+    const selectedFile =
+      event.target.files?.[0];
 
     setMessage("");
     setError("");
@@ -70,78 +73,45 @@ function UploadResume() {
       return;
     }
 
-    // Check PDF
+    // ---------------------------------------------------
+    // PDF CHECK
+    // ---------------------------------------------------
+
     if (
-      selectedFile.type !== "application/pdf" &&
+      selectedFile.type !==
+        "application/pdf" &&
       !selectedFile.name
         .toLowerCase()
         .endsWith(".pdf")
     ) {
-      setError("Please upload a PDF resume.");
+      setError(
+        "Please upload a PDF resume."
+      );
+
       setFile(null);
+
       return;
     }
 
-    // 10 MB limit
-    if (selectedFile.size > 10 * 1024 * 1024) {
+    // ---------------------------------------------------
+    // FILE SIZE
+    // ---------------------------------------------------
+
+    if (
+      selectedFile.size >
+      10 * 1024 * 1024
+    ) {
       setError(
         "File size must be less than 10 MB."
       );
+
       setFile(null);
+
       return;
     }
 
     setFile(selectedFile);
   };
-
-  // =====================================================
-  // JOB CHANGE
-  // =====================================================
-
-  const handleJobChange = (event) => {
-    setSelectedJob(event.target.value);
-
-    setMessage("");
-    setError("");
-  };
-
-  // =====================================================
-  // GET SELECTED JOB
-  // =====================================================
-
-  const selectedJobData = jobs.find(
-    (job) =>
-      String(job.id) === String(selectedJob)
-  );
-
-  // =====================================================
-  // REQUIRED SKILLS
-  // =====================================================
-
-  const getRequiredSkills = () => {
-    if (!selectedJobData) {
-      return [];
-    }
-
-    const skills =
-      selectedJobData.required_skills;
-
-    if (Array.isArray(skills)) {
-      return skills;
-    }
-
-    if (typeof skills === "string") {
-      return skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean);
-    }
-
-    return [];
-  };
-
-  const requiredSkills =
-    getRequiredSkills();
 
   // =====================================================
   // UPLOAD RESUME
@@ -161,17 +131,7 @@ function UploadResume() {
       setError(
         "Please select a resume PDF."
       );
-      return;
-    }
 
-    // ---------------------------------------------------
-    // VALIDATE JOB
-    // ---------------------------------------------------
-
-    if (!selectedJob) {
-      setError(
-        "Please select a job."
-      );
       return;
     }
 
@@ -186,32 +146,44 @@ function UploadResume() {
       file
     );
 
-    // IMPORTANT:
-    // Backend currently accepts:
+    // ===================================================
+    // IMPORTANT
     //
-    // POST /resume/upload?job_id=1
+    // The backend now automatically:
     //
-    // Therefore job_id goes in the URL.
-
-    // ---------------------------------------------------
-    // SEND REQUEST
-    // ---------------------------------------------------
+    // 1. Extracts resume
+    // 2. Extracts skills
+    // 3. Runs ML prediction
+    // 4. Runs SBERT
+    // 5. Checks all jobs
+    // 6. Returns TOP 5 jobs
+    //
+    // Therefore DO NOT send job_id.
+    //
+    // ===================================================
 
     try {
       setUploading(true);
 
       console.log(
-        "Uploading resume:",
+        "================================"
+      );
+
+      console.log(
+        "UPLOADING RESUME"
+      );
+
+      console.log(
+        "File:",
         file.name
       );
 
       console.log(
-        "Selected job:",
-        selectedJob
+        "================================"
       );
 
       const response = await api.post(
-        `/resume/upload?job_id=${selectedJob}`,
+        "/resume/upload",
         formData,
         {
           headers: {
@@ -232,7 +204,7 @@ function UploadResume() {
       );
 
       console.log(
-        "SCREENING RESULT FROM BACKEND:"
+        "SCREENING RESULT"
       );
 
       console.log(data);
@@ -242,7 +214,20 @@ function UploadResume() {
       );
 
       // -------------------------------------------------
-      // SUCCESS MESSAGE
+      // CHECK SUCCESS
+      // -------------------------------------------------
+
+      if (
+        data?.success === false
+      ) {
+        throw new Error(
+          data?.message ||
+            "Resume screening failed."
+        );
+      }
+
+      // -------------------------------------------------
+      // SUCCESS
       // -------------------------------------------------
 
       setMessage(
@@ -250,7 +235,7 @@ function UploadResume() {
       );
 
       // -------------------------------------------------
-      // GO TO SCREENING RESULT
+      // NAVIGATE TO RESULT
       // -------------------------------------------------
 
       navigate(
@@ -259,11 +244,17 @@ function UploadResume() {
           state: {
             result: data,
 
-            // Also pass selected job information
-            job: selectedJobData || null,
+            filename:
+              file.name,
 
-            // Pass filename
-            filename: file.name,
+            recommendedJobs:
+              data.recommended_jobs ||
+              data.top_jobs ||
+              [],
+
+            job:
+              data.job ||
+              null,
           },
         }
       );
@@ -291,10 +282,19 @@ function UploadResume() {
         );
 
       } else if (
+        err.response?.status === 400
+      ) {
+        setError(
+          err.response?.data?.detail ||
+            "Invalid resume file."
+        );
+
+      } else if (
         err.response?.status === 404
       ) {
         setError(
-          "Upload endpoint not found. Check that the backend route is /resume/upload."
+          err.response?.data?.detail ||
+            "No suitable jobs were found."
         );
 
       } else if (
@@ -303,7 +303,9 @@ function UploadResume() {
         const detail =
           err.response?.data?.detail;
 
-        if (Array.isArray(detail)) {
+        if (
+          Array.isArray(detail)
+        ) {
           setError(
             detail
               .map(
@@ -313,6 +315,7 @@ function UploadResume() {
               )
               .join(", ")
           );
+
         } else {
           setError(
             detail ||
@@ -339,8 +342,9 @@ function UploadResume() {
 
   const handleReset = () => {
     setFile(null);
-    setSelectedJob("");
+
     setMessage("");
+
     setError("");
 
     const input =
@@ -377,10 +381,10 @@ function UploadResume() {
           </h1>
 
           <p>
-            Upload a candidate resume and
-            select a job to analyze their
-            skills, compatibility and
-            screening score.
+            Upload a candidate resume and let
+            the AI system automatically analyze
+            the resume and recommend the most
+            suitable jobs.
           </p>
 
         </div>
@@ -492,49 +496,7 @@ function UploadResume() {
 
 
           {/* =================================================
-              JOB SELECTION
-          ================================================= */}
-
-          <div className="form-group">
-
-            <label htmlFor="job">
-              Select Job
-            </label>
-
-            <select
-              id="job"
-              value={selectedJob}
-              onChange={handleJobChange}
-              disabled={
-                loadingJobs ||
-                uploading
-              }
-            >
-
-              <option value="">
-                {loadingJobs
-                  ? "Loading jobs..."
-                  : "Select a job"}
-              </option>
-
-              {jobs.map((job) => (
-
-                <option
-                  key={job.id}
-                  value={job.id}
-                >
-                  {job.title}
-                </option>
-
-              ))}
-
-            </select>
-
-          </div>
-
-
-          {/* =================================================
-              REQUIRED SKILLS
+              AUTOMATIC JOB MATCHING
           ================================================= */}
 
           <div className="required-skills-box">
@@ -544,59 +506,51 @@ function UploadResume() {
               <div>
 
                 <h3>
-                  Required Skills
+                  Automatic Job Matching
                 </h3>
 
                 <p>
-                  Skills required for the
-                  selected position.
+                  You don't need to select a job.
+                  Our AI will compare your resume
+                  with all available jobs.
                 </p>
 
               </div>
 
-
-              {selectedJob && (
-
-                <span className="skill-count">
-                  {requiredSkills.length}
-                </span>
-
-              )}
+              <span className="skill-count">
+                {jobs.length}
+              </span>
 
             </div>
 
 
-            {!selectedJob ? (
+            {loadingJobs ? (
 
               <div className="skills-placeholder">
 
                 <span>
-                  💡
+                  🔄
                 </span>
 
                 <p>
-                  Select a job to see required
-                  skills.
+                  Loading available jobs...
                 </p>
 
               </div>
 
-            ) : requiredSkills.length > 0 ? (
+            ) : jobs.length > 0 ? (
 
-              <div className="skill-tags">
+              <div className="skills-placeholder">
 
-                {requiredSkills.map(
-                  (skill, index) => (
+                <span>
+                  🤖
+                </span>
 
-                    <span
-                      key={`${skill}-${index}`}
-                      className="skill-tag"
-                    >
-                      ✓ {skill}
-                    </span>
-
-                  )
-                )}
+                <p>
+                  AI will analyze your resume
+                  against {jobs.length} available
+                  jobs and return the Top 5 matches.
+                </p>
 
               </div>
 
@@ -604,9 +558,12 @@ function UploadResume() {
 
               <div className="skills-placeholder">
 
+                <span>
+                  ⚠
+                </span>
+
                 <p>
-                  No required skills found
-                  for this job.
+                  No jobs are currently available.
                 </p>
 
               </div>
@@ -672,8 +629,7 @@ function UploadResume() {
               onClick={handleUpload}
               disabled={
                 uploading ||
-                !file ||
-                !selectedJob
+                !file
               }
             >
 
@@ -681,13 +637,14 @@ function UploadResume() {
 
                 <>
                   <span className="button-spinner"></span>
-                  Screening Resume...
+
+                  AI Screening...
                 </>
 
               ) : (
 
                 <>
-                  🚀 Upload & Screen
+                  🚀 Analyze Resume
                 </>
 
               )}
@@ -718,7 +675,7 @@ function UploadResume() {
               </h2>
 
               <p>
-                What happens after upload?
+                Automatic resume analysis
               </p>
 
             </div>
@@ -781,12 +738,13 @@ function UploadResume() {
               <div>
 
                 <h3>
-                  SBERT Matching
+                  SBERT Job Matching
                 </h3>
 
                 <p>
-                  Compare the resume with
-                  the selected job semantically.
+                  Compare the resume with all
+                  available jobs using semantic
+                  similarity.
                 </p>
 
               </div>
@@ -803,12 +761,12 @@ function UploadResume() {
               <div>
 
                 <h3>
-                  AI Decision
+                  Top 5 Recommendations
                 </h3>
 
                 <p>
-                  Generate screening score,
-                  match percentage and decision.
+                  Rank the best jobs according
+                  to skills and semantic similarity.
                 </p>
 
               </div>
@@ -841,7 +799,7 @@ function UploadResume() {
 
             <div>
               <span>✓</span>
-              Job Recommendations
+              Top 5 Job Recommendations
             </div>
 
           </div>

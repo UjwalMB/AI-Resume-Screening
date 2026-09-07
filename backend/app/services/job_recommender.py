@@ -16,7 +16,149 @@ _job_embedding_cache = {}
 
 
 # =========================================================
-# JOB RECOMMENDATION
+# NORMALIZE SKILL
+# =========================================================
+
+def normalize_skill(skill):
+
+    if not skill:
+        return ""
+
+    skill = str(skill).strip().lower()
+
+    aliases = {
+
+        # Python
+        "python": "python",
+
+        # JavaScript
+        "javascript": "javascript",
+        "java script": "javascript",
+        "js": "javascript",
+
+        # React
+        "reactjs": "react",
+        "react.js": "react",
+        "react js": "react",
+
+        # FastAPI
+        "fastapi": "fastapi",
+        "fast api": "fastapi",
+        "fast-api": "fastapi",
+
+        # REST
+        "rest api": "rest api",
+        "rest apis": "rest api",
+        "restful api": "rest api",
+        "restful apis": "rest api",
+
+        # Machine Learning
+        "machine learning": "machine learning",
+        "machine-learning": "machine learning",
+        "ml": "machine learning",
+
+        # Deep Learning
+        "deep learning": "deep learning",
+        "deep-learning": "deep learning",
+
+        # Scikit-learn
+        "scikit-learn": "scikit-learn",
+        "scikit learn": "scikit-learn",
+        "sklearn": "scikit-learn",
+
+        # NumPy
+        "numpy": "numpy",
+        "num py": "numpy",
+
+        # Pandas
+        "pandas": "pandas",
+
+        # SQL
+        "sql": "sql",
+
+        # MySQL
+        "mysql": "mysql",
+
+        # PostgreSQL
+        "postgres": "postgresql",
+        "postgre": "postgresql",
+        "postgresql": "postgresql",
+
+        # Flask
+        "flask": "flask",
+
+        # Django
+        "django": "django",
+
+        # Git
+        "git": "git",
+
+        # GitHub
+        "github": "github",
+
+        # Docker
+        "docker": "docker",
+
+        # HTML
+        "html": "html",
+
+        # CSS
+        "css": "css",
+
+        # Java
+        "java": "java",
+
+        # C++
+        "c++": "c++",
+
+        # C
+        "c": "c",
+
+        # AWS
+        "aws": "aws",
+
+        # TensorFlow
+        "tensorflow": "tensorflow",
+
+        # PyTorch
+        "pytorch": "pytorch",
+
+        # NLP
+        "nlp": "nlp",
+
+        # SBERT
+        "sbert": "sbert",
+
+        # Power BI
+        "power bi": "power bi",
+
+        # Excel
+        "excel": "excel",
+    }
+
+    return aliases.get(skill, skill)
+
+
+# =========================================================
+# NORMALIZE SKILL LIST
+# =========================================================
+
+def normalize_skill_set(skills):
+
+    normalized = set()
+
+    for skill in skills:
+
+        value = normalize_skill(skill)
+
+        if value:
+            normalized.add(value)
+
+    return normalized
+
+
+# =========================================================
+# RECOMMEND JOBS
 # =========================================================
 
 def recommend_jobs(resume_text, top_n=5):
@@ -25,15 +167,11 @@ def recommend_jobs(resume_text, top_n=5):
     # 1. EXTRACT RESUME SKILLS
     # =====================================================
 
-    resume_skills = extract_skills(
-        resume_text
-    )
+    resume_skills = extract_skills(resume_text)
 
-    resume_skills_lower = {
-        skill.strip().lower()
-        for skill in resume_skills
-        if skill.strip()
-    }
+    resume_skills_normalized = normalize_skill_set(
+        resume_skills
+    )
 
     print("\n==============================")
     print("RESUME SKILLS")
@@ -42,9 +180,16 @@ def recommend_jobs(resume_text, top_n=5):
     for skill in resume_skills:
         print("-", skill)
 
+    print("\n==============================")
+    print("NORMALIZED RESUME SKILLS")
+    print("==============================")
+
+    for skill in sorted(resume_skills_normalized):
+        print("-", skill)
+
 
     # =====================================================
-    # 2. CREATE RESUME EMBEDDING ONCE
+    # 2. CREATE RESUME EMBEDDING
     # =====================================================
 
     print("\nCreating resume SBERT embedding...")
@@ -87,7 +232,7 @@ def recommend_jobs(resume_text, top_n=5):
 
 
         # =================================================
-        # 5. PROCESS EACH JOB
+        # 5. PROCESS EVERY JOB
         # =================================================
 
         for row in rows:
@@ -110,32 +255,50 @@ def recommend_jobs(resume_text, top_n=5):
 
 
             # =============================================
+            # NORMALIZE JOB SKILLS
+            # =============================================
+
+            normalized_required_skills = []
+
+            for skill in required_skills:
+
+                normalized = normalize_skill(skill)
+
+                if normalized:
+                    normalized_required_skills.append(
+                        normalized
+                    )
+
+
+            # =============================================
             # MATCH SKILLS
             # =============================================
 
             matched_skills = []
             missing_skills = []
 
-            for skill in required_skills:
+            for index, skill in enumerate(
+                required_skills
+            ):
 
-                if skill.lower() in resume_skills_lower:
+                normalized_required = (
+                    normalized_required_skills[index]
+                )
 
-                    matched_skills.append(
-                        skill
-                    )
+                if normalized_required in resume_skills_normalized:
+
+                    matched_skills.append(skill)
 
                 else:
 
-                    missing_skills.append(
-                        skill
-                    )
+                    missing_skills.append(skill)
 
 
             # =============================================
             # SKILL MATCH %
             # =============================================
 
-            if required_skills:
+            if len(required_skills) > 0:
 
                 skill_match = (
                     len(matched_skills)
@@ -145,7 +308,7 @@ def recommend_jobs(resume_text, top_n=5):
 
             else:
 
-                skill_match = 0
+                skill_match = 0.0
 
 
             # =============================================
@@ -165,7 +328,7 @@ Required Skills:
 
 
             # =============================================
-            # SBERT EMBEDDING CACHE
+            # JOB SBERT EMBEDDING
             # =============================================
 
             if job_id not in _job_embedding_cache:
@@ -174,10 +337,8 @@ Required Skills:
                     f"Creating SBERT embedding for job {job_id}..."
                 )
 
-                _job_embedding_cache[
-                    job_id
-                ] = get_embedding(
-                    job_text
+                _job_embedding_cache[job_id] = (
+                    get_embedding(job_text)
                 )
 
             else:
@@ -210,7 +371,7 @@ Required Skills:
                     error
                 )
 
-                sbert_score = 0
+                sbert_score = 0.0
 
 
             # =============================================
@@ -266,12 +427,11 @@ Required Skills:
                         final_score,
                         2
                     )
-
             })
 
 
         # =================================================
-        # 6. SORT JOBS
+        # 6. SORT BY FINAL SCORE
         # =================================================
 
         recommendations.sort(
@@ -282,13 +442,12 @@ Required Skills:
 
 
         # =================================================
-        # 7. PRINT RECOMMENDATIONS
+        # 7. PRINT RESULTS
         # =================================================
 
         print("\n==============================")
         print("RECOMMENDED JOBS")
         print("==============================")
-
 
         for index, job in enumerate(
             recommendations[:top_n],
