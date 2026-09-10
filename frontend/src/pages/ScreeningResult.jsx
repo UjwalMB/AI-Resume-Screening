@@ -67,9 +67,7 @@ function ScreeningResult() {
   };
 
   const safeArray = (value) => {
-    return Array.isArray(value)
-      ? value
-      : [];
+    return Array.isArray(value) ? value : [];
   };
 
   // =====================================================
@@ -161,6 +159,99 @@ function ScreeningResult() {
     );
 
   // =====================================================
+  // ATS ANALYSIS
+  // =====================================================
+
+  const atsAnalysis =
+    result.ats_analysis &&
+    typeof result.ats_analysis === "object"
+      ? result.ats_analysis
+      : {};
+
+  const atsScore =
+    safeNumber(
+      atsAnalysis.ats_score
+    );
+
+  const keywordMatch =
+    safeNumber(
+      atsAnalysis.keyword_match
+    );
+
+  const structureScore =
+    safeNumber(
+      atsAnalysis.structure_score
+    );
+
+  const contactScore =
+    safeNumber(
+      atsAnalysis.contact_score
+    );
+
+  const atsSkillsScore =
+    safeNumber(
+      atsAnalysis.skills_score
+    );
+
+  const lengthScore =
+    safeNumber(
+      atsAnalysis.length_score
+    );
+
+  const wordCount =
+    safeNumber(
+      atsAnalysis.word_count
+    );
+
+  const detectedSections =
+    atsAnalysis.detected_sections &&
+    typeof atsAnalysis.detected_sections === "object"
+      ? atsAnalysis.detected_sections
+      : {};
+
+  const contactChecks =
+    atsAnalysis.contact_checks &&
+    typeof atsAnalysis.contact_checks === "object"
+      ? atsAnalysis.contact_checks
+      : {};
+
+  const matchedKeywords =
+    safeArray(
+      atsAnalysis.matched_keywords
+    )
+      .map((keyword) =>
+        safeText(keyword)
+      )
+      .filter(Boolean);
+
+  const missingKeywords =
+    safeArray(
+      atsAnalysis.missing_keywords
+    )
+      .map((keyword) =>
+        safeText(keyword)
+      )
+      .filter(Boolean);
+
+  const atsIssues =
+    safeArray(
+      atsAnalysis.issues
+    )
+      .map((issue) =>
+        safeText(issue)
+      )
+      .filter(Boolean);
+
+  const atsSuggestions =
+    safeArray(
+      atsAnalysis.suggestions
+    )
+      .map((suggestion) =>
+        safeText(suggestion)
+      )
+      .filter(Boolean);
+
+  // =====================================================
   // JOB MATCH
   // =====================================================
 
@@ -215,7 +306,8 @@ function ScreeningResult() {
 
   const recommendedJobs =
     safeArray(
-      result.recommended_jobs
+      result.recommended_jobs ||
+        result.top_jobs
     );
 
   // =====================================================
@@ -229,14 +321,14 @@ function ScreeningResult() {
 
   const getScoreLevel = (score) => {
     if (score >= 75) {
-      return "score-high";
+      return "high";
     }
 
     if (score >= 50) {
-      return "score-medium";
+      return "medium";
     }
 
-    return "score-low";
+    return "low";
   };
 
   const getDecisionClass = (value) => {
@@ -248,17 +340,25 @@ function ScreeningResult() {
       decisionValue ===
       "SHORTLIST"
     ) {
-      return "decision-shortlist";
+      return "shortlist";
     }
 
     if (
       decisionValue ===
       "REVIEW"
     ) {
-      return "decision-review";
+      return "review";
     }
 
-    return "decision-reject";
+    return "reject";
+  };
+
+  const formatSectionName = (section) => {
+    return String(section)
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      );
   };
 
   // =====================================================
@@ -269,33 +369,34 @@ function ScreeningResult() {
     return (
       <div className="screening-result-page">
 
-        <div className="result-container">
+        <div className="screening-result-container">
 
-          <section className="result-section">
+          <div className="empty-result-card">
 
-            <div className="empty-state">
-
-              <h2>
-                No Screening Result
-              </h2>
-
-              <p>
-                Please upload a resume first.
-              </p>
-
-              <button
-                type="button"
-                className="primary-action"
-                onClick={() =>
-                  navigate("/upload")
-                }
-              >
-                Upload Resume
-              </button>
-
+            <div className="empty-result-icon">
+              📄
             </div>
 
-          </section>
+            <h1>
+              No Screening Result
+            </h1>
+
+            <p>
+              Please upload a resume first
+              to view the AI screening result.
+            </p>
+
+            <button
+              type="button"
+              className="primary-action"
+              onClick={() =>
+                navigate("/upload")
+              }
+            >
+              Upload Resume
+            </button>
+
+          </div>
 
         </div>
 
@@ -310,13 +411,13 @@ function ScreeningResult() {
   return (
     <div className="screening-result-page">
 
-      <div className="result-container">
+      <div className="screening-result-container">
 
         {/* =================================================
-            HEADER
+            PAGE HEADER
         ================================================= */}
 
-        <div className="result-header">
+        <div className="screening-page-header">
 
           <div>
 
@@ -368,7 +469,7 @@ function ScreeningResult() {
 
           </div>
 
-          <div className="result-info-grid">
+          <div className="result-info-card">
 
             <div className="result-info-item">
 
@@ -426,7 +527,82 @@ function ScreeningResult() {
         </section>
 
         {/* =================================================
-            SCORE
+            MAIN SCORE
+        ================================================= */}
+
+        <section className="main-score-card">
+
+          <div className="score-circle-wrapper">
+
+            <div
+              className="score-circle"
+              style={{
+                "--score": `${Math.min(
+                  Math.max(finalScore, 0),
+                  100
+                )}%`
+              }}
+            >
+
+              <div className="score-circle-inner">
+
+                <strong>
+                  {formatScore(finalScore)}
+                </strong>
+
+                <span>
+                  Overall Score
+                </span>
+
+              </div>
+
+            </div>
+
+            <div className="score-caption">
+              AI Resume Screening Score
+            </div>
+
+          </div>
+
+          <div className="score-explanation">
+
+            <span className="section-eyebrow">
+              AI EVALUATION
+            </span>
+
+            <h2>
+              Resume Screening Overview
+            </h2>
+
+            <p>
+              The final score combines resume
+              quality, skill matching, SBERT
+              semantic similarity and machine
+              learning confidence.
+            </p>
+
+            <div className="decision-large">
+
+              <span>
+                Final Decision
+              </span>
+
+              <strong
+                className={getDecisionClass(
+                  decision
+                )}
+              >
+                {decision}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            SCORE BREAKDOWN
         ================================================= */}
 
         <section className="result-section">
@@ -436,80 +612,645 @@ function ScreeningResult() {
             <div>
 
               <span className="section-eyebrow">
-                AI EVALUATION
+                SCORE BREAKDOWN
               </span>
 
               <h2>
-                Resume Score
+                AI Evaluation Metrics
               </h2>
 
             </div>
 
           </div>
 
-          <div className="score-grid">
+          <div className="score-breakdown-grid">
 
-            <div
-              className={`score-card ${getScoreLevel(
-                finalScore
-              )}`}
-            >
+            <div className="metric-card">
 
-              <span>
-                Overall Score
-              </span>
+              <div className="metric-top">
+                <span className="metric-icon">
+                  📄
+                </span>
 
-              <strong>
-                {formatScore(
-                  finalScore
-                )}%
-              </strong>
+                <strong className="metric-value">
+                  {formatScore(
+                    resumeQualityScore
+                  )}%
+                </strong>
+              </div>
 
-            </div>
-
-            <div className="score-card">
-
-              <span>
+              <h3>
                 Resume Quality
-              </span>
+              </h3>
 
-              <strong>
-                {formatScore(
-                  resumeQualityScore
-                )}%
-              </strong>
+              <p>
+                Overall quality based on
+                resume content and structure.
+              </p>
+
+              <div className="metric-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        resumeQualityScore,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
 
             </div>
 
-            <div className="score-card">
+            <div className="metric-card">
 
-              <span>
+              <div className="metric-top">
+                <span className="metric-icon">
+                  🎯
+                </span>
+
+                <strong className="metric-value">
+                  {formatScore(
+                    matchPercentage
+                  )}%
+                </strong>
+              </div>
+
+              <h3>
                 Skill Match
-              </span>
+              </h3>
 
-              <strong>
-                {formatScore(
-                  matchPercentage
-                )}%
-              </strong>
+              <p>
+                Percentage of required job
+                skills matched by the resume.
+              </p>
+
+              <div className="metric-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        matchPercentage,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
 
             </div>
 
-            <div className="score-card">
+            <div className="metric-card">
 
-              <span>
+              <div className="metric-top">
+                <span className="metric-icon">
+                  🧠
+                </span>
+
+                <strong className="metric-value">
+                  {formatScore(
+                    sbertSimilarity
+                  )}%
+                </strong>
+              </div>
+
+              <h3>
                 SBERT Similarity
-              </span>
+              </h3>
 
-              <strong>
-                {formatScore(
-                  sbertSimilarity
-                )}%
-              </strong>
+              <p>
+                Semantic similarity between
+                resume and job description.
+              </p>
+
+              <div className="metric-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        sbertSimilarity,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="metric-card">
+
+              <div className="metric-top">
+                <span className="metric-icon">
+                  🤖
+                </span>
+
+                <strong className="metric-value">
+                  {formatScore(
+                    mlConfidence
+                  )}%
+                </strong>
+              </div>
+
+              <h3>
+                ML Confidence
+              </h3>
+
+              <p>
+                Confidence of the machine
+                learning screening prediction.
+              </p>
+
+              <div className="metric-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        mlConfidence,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
 
             </div>
 
           </div>
+
+        </section>
+
+        {/* =================================================
+            ATS ANALYSIS
+        ================================================= */}
+
+        <section className="result-section">
+
+          <div className="section-heading">
+
+            <div>
+
+              <span className="section-eyebrow">
+                ATS ANALYSIS
+              </span>
+
+              <h2>
+                Applicant Tracking System Score
+              </h2>
+
+              <p>
+                ATS-style compatibility analysis
+                of your resume.
+              </p>
+
+            </div>
+
+            <span className="jobs-count">
+              {wordCount} Words
+            </span>
+
+          </div>
+
+          {/* ATS MAIN SCORE */}
+
+          <div className="ats-main-card">
+
+            <div
+              className={`ats-score-circle ${getScoreLevel(
+                atsScore
+              )}`}
+            >
+
+              <strong>
+                {formatScore(atsScore)}%
+              </strong>
+
+              <span>
+                ATS Score
+              </span>
+
+            </div>
+
+            <div className="ats-score-content">
+
+              <h3>
+                Resume ATS Compatibility
+              </h3>
+
+              <p>
+                This score evaluates resume
+                structure, contact information,
+                job keywords, skills and length.
+              </p>
+
+              <div className="ats-status">
+
+                <span>
+                  Status
+                </span>
+
+                <strong>
+                  {atsScore >= 75
+                    ? "Strong"
+                    : atsScore >= 50
+                    ? "Moderate"
+                    : "Needs Improvement"}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ATS METRICS */}
+
+          <div className="ats-metrics-grid">
+
+            <div className="ats-metric-card">
+
+              <span>
+                Keyword Match
+              </span>
+
+              <strong>
+                {formatScore(
+                  keywordMatch
+                )}%
+              </strong>
+
+              <div className="ats-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        keywordMatch,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="ats-metric-card">
+
+              <span>
+                Structure
+              </span>
+
+              <strong>
+                {formatScore(
+                  structureScore
+                )}%
+              </strong>
+
+              <div className="ats-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        structureScore,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="ats-metric-card">
+
+              <span>
+                Contact Information
+              </span>
+
+              <strong>
+                {formatScore(
+                  contactScore
+                )}%
+              </strong>
+
+              <div className="ats-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        contactScore,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="ats-metric-card">
+
+              <span>
+                Skills
+              </span>
+
+              <strong>
+                {formatScore(
+                  atsSkillsScore
+                )}%
+              </strong>
+
+              <div className="ats-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        atsSkillsScore,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="ats-metric-card">
+
+              <span>
+                Resume Length
+              </span>
+
+              <strong>
+                {formatScore(
+                  lengthScore
+                )}%
+              </strong>
+
+              <div className="ats-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      Math.max(
+                        lengthScore,
+                        0
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+
+            </div>
+
+            <div className="ats-metric-card">
+
+              <span>
+                Word Count
+              </span>
+
+              <strong>
+                {wordCount}
+              </strong>
+
+              <small>
+                Words detected
+              </small>
+
+            </div>
+
+          </div>
+
+          {/* DETECTED SECTIONS */}
+
+          {Object.keys(detectedSections).length > 0 && (
+
+            <div className="ats-detail-card">
+
+              <h3>
+                Resume Sections
+              </h3>
+
+              <div className="ats-section-list">
+
+                {Object.entries(
+                  detectedSections
+                ).map(
+                  ([section, detected]) => (
+
+                    <div
+                      className={`ats-section-item ${
+                        detected
+                          ? "detected"
+                          : "not-detected"
+                      }`}
+                      key={section}
+                    >
+
+                      <span>
+                        {detected
+                          ? "✓"
+                          : "✕"}
+                      </span>
+
+                      <strong>
+                        {formatSectionName(
+                          section
+                        )}
+                      </strong>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+          {/* CONTACT CHECKS */}
+
+          {Object.keys(contactChecks).length > 0 && (
+
+            <div className="ats-detail-card">
+
+              <h3>
+                Contact Information Checks
+              </h3>
+
+              <div className="contact-check-grid">
+
+                {Object.entries(
+                  contactChecks
+                ).map(
+                  ([item, detected]) => (
+
+                    <div
+                      className={`contact-check-item ${
+                        detected
+                          ? "detected"
+                          : "not-detected"
+                      }`}
+                      key={item}
+                    >
+
+                      <span>
+                        {detected
+                          ? "✓"
+                          : "✕"}
+                      </span>
+
+                      <strong>
+                        {formatSectionName(
+                          item
+                        )}
+                      </strong>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+          {/* MATCHED KEYWORDS */}
+
+          {matchedKeywords.length > 0 && (
+
+            <div className="ats-detail-card">
+
+              <h3>
+                Matched Job Keywords
+              </h3>
+
+              <div className="skill-list">
+
+                {matchedKeywords.map(
+                  (keyword, index) => (
+
+                    <span
+                      className="skill-pill matched"
+                      key={`${keyword}-${index}`}
+                    >
+                      ✓ {keyword}
+                    </span>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+          {/* MISSING KEYWORDS */}
+
+          {missingKeywords.length > 0 && (
+
+            <div className="ats-detail-card ats-warning-card">
+
+              <h3>
+                Missing Job Keywords
+              </h3>
+
+              <p>
+                These keywords were found in the
+                selected job requirements but not
+                detected in the resume.
+              </p>
+
+              <div className="skill-list">
+
+                {missingKeywords.map(
+                  (keyword, index) => (
+
+                    <span
+                      className="skill-pill missing"
+                      key={`${keyword}-${index}`}
+                    >
+                      ! {keyword}
+                    </span>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+          {/* ATS ISSUES */}
+
+          {atsIssues.length > 0 && (
+
+            <div className="ats-detail-card ats-issues-card">
+
+              <h3>
+                ATS Issues
+              </h3>
+
+              <ul>
+
+                {atsIssues.map(
+                  (issue, index) => (
+
+                    <li key={index}>
+                      {issue}
+                    </li>
+
+                  )
+                )}
+
+              </ul>
+
+            </div>
+
+          )}
+
+          {/* ATS SUGGESTIONS */}
+
+          {atsSuggestions.length > 0 && (
+
+            <div className="ats-detail-card ats-suggestion-card">
+
+              <h3>
+                ATS Suggestions
+              </h3>
+
+              <ul>
+
+                {atsSuggestions.map(
+                  (suggestion, index) => (
+
+                    <li key={index}>
+                      {suggestion}
+                    </li>
+
+                  )
+                )}
+
+              </ul>
+
+            </div>
+
+          )}
 
         </section>
 
@@ -949,8 +1690,7 @@ function ScreeningResult() {
 
                   const currentJob =
                     jobItem &&
-                    typeof jobItem ===
-                    "object"
+                    typeof jobItem === "object"
                       ? jobItem
                       : {};
 
@@ -1109,7 +1849,7 @@ function ScreeningResult() {
 
                         <div className="job-progress">
 
-                          <div
+                          <span
                             style={{
                               width: `${Math.min(
                                 Math.max(
@@ -1117,7 +1857,7 @@ function ScreeningResult() {
                                   0
                                 ),
                                 100
-                              )}%`,
+                              )}%`
                             }}
                           />
 

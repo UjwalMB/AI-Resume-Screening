@@ -41,6 +41,8 @@ from app.services.job_recommender import recommend_jobs
 
 from app.services.skill_extractor import extract_skills
 
+from app.services.ats_analyzer import analyze_ats_resume
+
 from app.services.sbert_service import (
     get_embedding,
     calculate_similarity
@@ -1105,6 +1107,55 @@ async def upload_resume(
 
 
     # =====================================================
+    # STEP 14.5: ATS COMPATIBILITY ANALYSIS
+    # =====================================================
+
+    try:
+
+        ats_result = analyze_ats_resume(
+
+            extracted_text,
+
+            resume_skills,
+
+            required_skills
+
+        )
+
+    except Exception as error:
+
+        print(
+            "ATS analysis error:",
+            error
+        )
+
+        ats_result = {
+            "ats_score": 0,
+            "keyword_match": 0,
+            "structure_score": 0,
+            "contact_score": 0,
+            "skills_score": 0,
+            "length_score": 0,
+            "word_count": 0,
+            "detected_sections": {},
+            "contact_checks": {},
+            "matched_keywords": [],
+            "missing_keywords": [],
+            "issues": ["ATS analysis could not be completed"],
+            "suggestions": ["Review the uploaded resume text and try again"],
+        }
+
+    print("\\n==============================")
+    print("ATS ANALYSIS")
+    print("==============================")
+    print("ATS Score:", ats_result.get("ats_score", 0))
+    print("Keyword Match:", ats_result.get("keyword_match", 0))
+    print("Structure Score:", ats_result.get("structure_score", 0))
+    print("Contact Score:", ats_result.get("contact_score", 0))
+    print("Skills Score:", ats_result.get("skills_score", 0))
+
+
+    # =====================================================
     # STEP 15: JOB SKILL MATCH
     # =====================================================
 
@@ -1695,6 +1746,12 @@ async def upload_resume(
 
         "skill_count":
             len(resume_skills),
+
+        # -------------------------------------------------
+        # ATS ANALYSIS
+        # -------------------------------------------------
+
+        "ats_analysis": ats_result,
 
         # -------------------------------------------------
         # JOB MATCH

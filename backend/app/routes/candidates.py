@@ -6,6 +6,7 @@ from app.auth import require_authentication
 from app.services.preprocessing import split_into_sentences
 from app.services.classifier import classify_sentence
 from app.services.job_recommender import recommend_jobs
+from app.services.ats_analyzer import analyze_ats_resume
 
 import ast
 import json
@@ -468,6 +469,33 @@ def get_candidate(
 
 
         # =================================================
+        # ATS ANALYSIS
+        # =================================================
+
+        ats_analysis = {}
+
+        if resume_text:
+            try:
+                ats_analysis = analyze_ats_resume(
+                    resume_text,
+                    required_skills
+                )
+
+                print(
+                    "ATS Score:",
+                    ats_analysis.get("ats_score", 0)
+                )
+
+            except Exception as error:
+                print(
+                    "ATS analysis error:",
+                    error
+                )
+
+                ats_analysis = {}
+
+
+        # =================================================
         # MATCHED SKILLS
         # =================================================
 
@@ -713,6 +741,14 @@ def get_candidate(
 
             "required_skills":
                 required_skills,
+
+
+            # -------------------------------------------------
+            # ATS ANALYSIS
+            # -------------------------------------------------
+
+            "ats_analysis":
+                ats_analysis,
 
 
             # -------------------------------------------------
