@@ -1745,6 +1745,115 @@ function ScreeningResult() {
                       )
                       .filter(Boolean);
 
+                  // =================================================
+                  // DETAILED SKILL COMPARISON (FEATURE 2)
+                  // =================================================
+
+                  const currentRequiredSkills =
+                    safeArray(
+                      currentJob.required_skills
+                    )
+                      .map((skill) =>
+                        safeText(skill)
+                      )
+                      .filter(Boolean);
+
+                  const currentSkillComparison =
+                    safeArray(
+                      currentJob.skill_comparison
+                    )
+                      .map((item) => {
+                        if (
+                          item &&
+                          typeof item === "object"
+                        ) {
+                          return {
+                            skill: safeText(item.skill),
+                            status: safeText(
+                              item.status
+                            ).toLowerCase()
+                          };
+                        }
+
+                        return {
+                          skill: safeText(item),
+                          status: "missing"
+                        };
+                      })
+                      .filter(
+                        (item) => item.skill
+                      );
+
+                  const displaySkillComparison =
+                    currentSkillComparison.length > 0
+                      ? currentSkillComparison
+                      : currentRequiredSkills.map(
+                          (skill) => ({
+                            skill,
+                            status:
+                              currentMatched.some(
+                                (matchedSkill) =>
+                                  matchedSkill.toLowerCase() ===
+                                  skill.toLowerCase()
+                              )
+                                ? "matched"
+                                : "missing"
+                          })
+                        );
+
+                  // =================================================
+                  // EXPLAINABLE JOB MATCH
+                  // =================================================
+
+                  const currentExplanation =
+                    currentJob.explanation &&
+                    typeof currentJob.explanation === "object"
+                      ? currentJob.explanation
+                      : {};
+
+                  const currentReasons =
+                    safeArray(
+                      currentExplanation.reasons
+                    )
+                      .map((reason) =>
+                        safeText(reason)
+                      )
+                      .filter(Boolean);
+
+                  const currentWhyMatch =
+                    safeText(
+                      currentExplanation.why_match,
+                      ""
+                    );
+
+                  const currentImprovementTip =
+                    safeText(
+                      currentExplanation.improvement_tip,
+                      ""
+                    );
+
+                  const currentMatchLevel =
+                    safeText(
+                      currentExplanation.match_level,
+                      "Match"
+                    );
+
+                  const scoreBreakdown =
+                    currentExplanation.score_breakdown &&
+                    typeof currentExplanation.score_breakdown === "object"
+                      ? currentExplanation.score_breakdown
+                      : {};
+
+                  const skillContribution =
+                    safeNumber(
+                      scoreBreakdown.skill_contribution
+                    );
+
+                  const sbertContribution =
+                    safeNumber(
+                      scoreBreakdown.sbert_contribution
+                    );
+
                   return (
 
                     <article
@@ -1864,6 +1973,247 @@ function ScreeningResult() {
                         </div>
 
                       </div>
+
+                      {/* =================================================
+                          EXPLAINABLE JOB MATCH
+                      ================================================= */}
+
+                      {(currentWhyMatch || currentReasons.length > 0) && (
+
+                        <div className="job-explanation-card">
+
+                          <div className="job-explanation-header">
+
+                            <div>
+
+                              <span className="explanation-eyebrow">
+                                AI EXPLANATION
+                              </span>
+
+                              <h4>
+                                Why This Job Matches
+                              </h4>
+
+                            </div>
+
+                            <span className="match-level-badge">
+                              {currentMatchLevel}
+                            </span>
+
+                          </div>
+
+                          {currentWhyMatch && (
+
+                            <p className="job-why-match">
+                              {currentWhyMatch}
+                            </p>
+
+                          )}
+
+                          {currentReasons.length > 0 && (
+
+                            <div className="explanation-reasons">
+
+                              {currentReasons.map(
+                                (reason, reasonIndex) => (
+
+                                  <div
+                                    className="explanation-reason"
+                                    key={reasonIndex}
+                                  >
+
+                                    <span className="reason-icon">
+                                      ✓
+                                    </span>
+
+                                    <p>
+                                      {reason}
+                                    </p>
+
+                                  </div>
+
+                                )
+                              )}
+
+                            </div>
+
+                          )}
+
+                          <div className="explanation-score-grid">
+
+                            <div className="explanation-score-item">
+
+                              <span>
+                                Skill Contribution
+                              </span>
+
+                              <strong>
+                                {formatScore(
+                                  skillContribution
+                                )}
+                              </strong>
+
+                              <small>
+                                / 60 points
+                              </small>
+
+                            </div>
+
+                            <div className="explanation-score-item">
+
+                              <span>
+                                SBERT Contribution
+                              </span>
+
+                              <strong>
+                                {formatScore(
+                                  sbertContribution
+                                )}
+                              </strong>
+
+                              <small>
+                                / 40 points
+                              </small>
+
+                            </div>
+
+                          </div>
+
+                          {currentImprovementTip && (
+
+                            <div className="explanation-tip">
+
+                              <span>
+                                💡
+                              </span>
+
+                              <p>
+                                {currentImprovementTip}
+                              </p>
+
+                            </div>
+
+                          )}
+
+                        </div>
+
+                      )}
+
+                      {/* =================================================
+                          DETAILED RESUME <-> JOB COMPARISON
+                      ================================================= */}
+
+                      {displaySkillComparison.length > 0 && (
+                        <div className="job-skill-comparison">
+                          <div className="job-skill-comparison-header">
+                            <div>
+                              <span className="comparison-eyebrow">
+                                FEATURE 2
+                              </span>
+
+                              <h4>
+                                Resume ↔ Job Skill Comparison
+                              </h4>
+
+                              <p>
+                                See which required skills are
+                                present in your resume and which
+                                ones are missing.
+                              </p>
+                            </div>
+
+                            <div className="comparison-summary">
+                              <span className="comparison-summary-value">
+                                {currentMatched.length}
+                              </span>
+                              <span className="comparison-summary-label">
+                                / {displaySkillComparison.length} matched
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="skill-comparison-list">
+                            {displaySkillComparison.map(
+                              (item, skillIndex) => {
+                                const isMatched =
+                                  item.status === "matched";
+
+                                return (
+                                  <div
+                                    className={`skill-comparison-row ${
+                                      isMatched
+                                        ? "matched"
+                                        : "missing"
+                                    }`}
+                                    key={`${item.skill}-${skillIndex}`}
+                                  >
+                                    <div className="comparison-skill-name">
+                                      <span
+                                        className={`comparison-status-icon ${
+                                          isMatched
+                                            ? "matched"
+                                            : "missing"
+                                        }`}
+                                      >
+                                        {isMatched ? "✓" : "✕"}
+                                      </span>
+
+                                      <strong>
+                                        {item.skill}
+                                      </strong>
+                                    </div>
+
+                                    <span
+                                      className={`comparison-status-label ${
+                                        isMatched
+                                          ? "matched"
+                                          : "missing"
+                                      }`}
+                                    >
+                                      {isMatched
+                                        ? "Matched"
+                                        : "Missing"}
+                                    </span>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+
+                          <div className="comparison-footer">
+                            <span>
+                              Required skills: {" "}
+                              <strong>
+                                {displaySkillComparison.length}
+                              </strong>
+                            </span>
+
+                            <span>
+                              Matched: {" "}
+                              <strong>
+                                {currentMatched.length}
+                              </strong>
+                            </span>
+
+                            <span>
+                              Missing: {" "}
+                              <strong>
+                                {currentMissing.length}
+                              </strong>
+                            </span>
+
+                            <span>
+                              Skill Match: {" "}
+                              <strong>
+                                {formatScore(
+                                  currentSkillMatch
+                                )}
+                                %
+                              </strong>
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* MATCHED */}
 

@@ -9,6 +9,110 @@ from app.services.skill_extractor import extract_skills
 
 
 # =========================================================
+# EXPLAINABLE JOB MATCHING
+# =========================================================
+
+def build_job_match_explanation(
+    matched_skills,
+    missing_skills,
+    required_skills,
+    skill_match,
+    sbert_similarity,
+    final_score
+):
+    """Create human-readable reasons behind a job match score."""
+
+    matched_skills = list(matched_skills or [])
+    missing_skills = list(missing_skills or [])
+    required_skills = list(required_skills or [])
+
+    skill_match = float(skill_match or 0)
+    sbert_similarity = float(sbert_similarity or 0)
+    final_score = float(final_score or 0)
+
+    required_count = len(required_skills)
+    matched_count = len(matched_skills)
+    missing_count = len(missing_skills)
+
+    if final_score >= 75:
+        match_level = "Strong Match"
+    elif final_score >= 60:
+        match_level = "Good Match"
+    elif final_score >= 45:
+        match_level = "Moderate Match"
+    else:
+        match_level = "Low Match"
+
+    # Current recommender formula:
+    # Skill Match = 60%
+    # SBERT Similarity = 40%
+    skill_contribution = round(skill_match * 0.60, 2)
+    sbert_contribution = round(sbert_similarity * 0.40, 2)
+
+    if sbert_similarity >= 75:
+        semantic_summary = (
+            "The resume is highly semantically aligned with this job."
+        )
+    elif sbert_similarity >= 50:
+        semantic_summary = (
+            "The resume has moderate semantic alignment with this job."
+        )
+    else:
+        semantic_summary = (
+            "The resume has limited semantic alignment with this job."
+        )
+
+    reasons = [
+        f"Matched {matched_count} of {required_count} required skills.",
+        f"Skill matching contributed {skill_contribution:.2f} points to the job score.",
+        f"SBERT semantic similarity is {sbert_similarity:.2f}%, contributing {sbert_contribution:.2f} points.",
+        semantic_summary,
+    ]
+
+    if matched_skills:
+        reasons.append(
+            "Key matching skills: " + ", ".join(matched_skills[:5]) + "."
+        )
+
+    if missing_skills:
+        reasons.append(
+            "Main skill gaps: " + ", ".join(missing_skills[:5]) + "."
+        )
+    else:
+        reasons.append("No required skills are currently missing.")
+
+    why_match = (
+        f"{match_level}: {matched_count}/{required_count} required skills matched "
+        f"with {sbert_similarity:.2f}% semantic similarity."
+        if required_count
+        else f"{match_level}: SBERT semantic similarity is {sbert_similarity:.2f}%."
+    )
+
+    improvement_tip = (
+        "Add evidence of " + ", ".join(missing_skills[:3]) + " to improve this match."
+        if missing_skills
+        else "Keep the matched skills clearly visible in the resume."
+    )
+
+    return {
+        "match_level": match_level,
+        "match_percentage": round(skill_match, 2),
+        "matched_skill_count": matched_count,
+        "required_skill_count": required_count,
+        "missing_skill_count": missing_count,
+        "score_breakdown": {
+            "skill_match_weight": 60,
+            "sbert_weight": 40,
+            "skill_contribution": skill_contribution,
+            "sbert_contribution": sbert_contribution,
+        },
+        "reasons": reasons,
+        "why_match": why_match,
+        "improvement_tip": improvement_tip,
+    }
+
+
+# =========================================================
 # JOB EMBEDDING CACHE
 # =========================================================
 
@@ -295,6 +399,25 @@ def recommend_jobs(resume_text, top_n=5):
 
 
             # =============================================
+            # DETAILED SKILL COMPARISON (FEATURE 2)
+            # =============================================
+            # Keep the original job-skill order so the frontend
+            # can clearly show Resume <-> Job requirement status.
+            skill_comparison = []
+
+            for index, skill in enumerate(required_skills):
+                normalized_required = normalized_required_skills[index]
+
+                skill_comparison.append({
+                    "skill": skill,
+                    "status": (
+                        "matched"
+                        if normalized_required in resume_skills_normalized
+                        else "missing"
+                    )
+                })
+
+            # =============================================
             # SKILL MATCH %
             # =============================================
 
@@ -390,6 +513,27 @@ Required Skills:
 
 
             # =============================================
+            # EXPLAINABLE JOB MATCH
+            # =============================================
+
+            explanation = build_job_match_explanation(
+
+                matched_skills=matched_skills,
+
+                missing_skills=missing_skills,
+
+                required_skills=required_skills,
+
+                skill_match=skill_match,
+
+                sbert_similarity=sbert_score,
+
+                final_score=final_score
+
+            )
+
+
+            # =============================================
             # SAVE RESULT
             # =============================================
 
@@ -410,6 +554,9 @@ Required Skills:
                 "missing_skills":
                     missing_skills,
 
+                "skill_comparison":
+                    skill_comparison,
+
                 "skill_match":
                     round(
                         skill_match,
@@ -426,7 +573,10 @@ Required Skills:
                     round(
                         final_score,
                         2
-                    )
+                    ),
+
+                "explanation":
+                    explanation
             })
 
 

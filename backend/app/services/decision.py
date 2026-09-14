@@ -38,10 +38,7 @@ def normalize_skill(skill):
         "git": "git"
     }
 
-    return aliases.get(
-        skill,
-        skill
-    )
+    return aliases.get(skill, skill)
 
 
 # =========================================================
@@ -53,19 +50,12 @@ def calculate_job_match(
     required_skills
 ):
 
-    # -----------------------------------------------------
-    # Extract skills from resume
-    # -----------------------------------------------------
-
-    resume_skills = extract_skills(
-        resume_text
-    )
+    resume_skills = extract_skills(resume_text)
 
     print("\n==============================")
     print("EXTRACTED RESUME SKILLS")
     print("==============================")
     print(resume_skills)
-
 
     # -----------------------------------------------------
     # Normalize resume skills
@@ -75,24 +65,14 @@ def calculate_job_match(
 
     for skill in resume_skills:
 
-        normalized = normalize_skill(
-            skill
-        )
+        normalized = normalize_skill(skill)
 
-        resume_skills_normalized.add(
-            normalized
-        )
-
+        resume_skills_normalized.add(normalized)
 
     print("\n==============================")
     print("NORMALIZED RESUME SKILLS")
     print("==============================")
-    print(
-        sorted(
-            resume_skills_normalized
-        )
-    )
-
+    print(sorted(resume_skills_normalized))
 
     # -----------------------------------------------------
     # Prepare result lists
@@ -101,9 +81,8 @@ def calculate_job_match(
     matched_skills = []
     missing_skills = []
 
-
     # -----------------------------------------------------
-    # Check every required job skill
+    # Check required skills
     # -----------------------------------------------------
 
     for skill in required_skills:
@@ -113,55 +92,33 @@ def calculate_job_match(
         if not skill_clean:
             continue
 
-
         normalized_required_skill = normalize_skill(
             skill_clean
         )
 
-
         print(
             f"Checking job skill: "
-            f"{skill_clean} "
-            f"-> "
+            f"{skill_clean} -> "
             f"{normalized_required_skill}"
         )
 
-
-        # -------------------------------------------------
-        # MATCH
-        # -------------------------------------------------
-
         if normalized_required_skill in resume_skills_normalized:
 
-            matched_skills.append(
-                skill_clean
-            )
-
-        # -------------------------------------------------
-        # MISSING
-        # -------------------------------------------------
+            matched_skills.append(skill_clean)
 
         else:
 
-            missing_skills.append(
-                skill_clean
-            )
-
+            missing_skills.append(skill_clean)
 
     # -----------------------------------------------------
     # Calculate match percentage
     # -----------------------------------------------------
 
     total_skills = (
-
         len(matched_skills)
-
         +
-
         len(missing_skills)
-
     )
-
 
     if total_skills == 0:
 
@@ -170,19 +127,10 @@ def calculate_job_match(
     else:
 
         match_percentage = (
-
             len(matched_skills)
-
             /
-
             total_skills
-
         ) * 100
-
-
-    # -----------------------------------------------------
-    # Print final result
-    # -----------------------------------------------------
 
     print("\n==============================")
     print("FINAL JOB MATCH")
@@ -200,16 +148,8 @@ def calculate_job_match(
 
     print(
         "Match Percentage:",
-        round(
-            match_percentage,
-            2
-        )
+        round(match_percentage, 2)
     )
-
-
-    # -----------------------------------------------------
-    # Return
-    # -----------------------------------------------------
 
     return {
 
@@ -220,10 +160,7 @@ def calculate_job_match(
             missing_skills,
 
         "match_percentage":
-            round(
-                match_percentage,
-                2
-            )
+            round(match_percentage, 2)
 
     }
 
@@ -237,44 +174,41 @@ def make_decision(
     match_percentage
 ):
 
+    score = float(score or 0)
+    match_percentage = float(match_percentage or 0)
+
     # -----------------------------------------------------
     # SHORTLIST
+    #
+    # Strong overall score + strong job match
     # -----------------------------------------------------
 
     if (
-
         score >= 75
-
         and
-
         match_percentage >= 70
-
     ):
 
         return "SHORTLIST"
 
+    # -----------------------------------------------------
+    # REJECT
+    #
+    # Very weak overall score OR very poor job match
+    # -----------------------------------------------------
+
+    if (
+        score < 50
+        or
+        match_percentage < 40
+    ):
+
+        return "REJECT"
 
     # -----------------------------------------------------
     # REVIEW
+    #
+    # Borderline candidates
     # -----------------------------------------------------
 
-    elif (
-
-        score >= 50
-
-        and
-
-        match_percentage >= 50
-
-    ):
-
-        return "REVIEW"
-
-
-    # -----------------------------------------------------
-    # REJECT
-    # -----------------------------------------------------
-
-    else:
-
-        return "REJECT"
+    return "REVIEW"

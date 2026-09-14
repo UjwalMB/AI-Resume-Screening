@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import joblib
 
@@ -10,23 +11,52 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
-    classification_report
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay
 )
+
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+
+# =========================================================
+# FILE PATHS
+# =========================================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATASET_PATH = os.path.join(
+    BASE_DIR,
+    "resume_dataset.csv"
+)
+
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "resume_model.pkl"
+)
+
+VECTORIZER_PATH = os.path.join(
+    BASE_DIR,
+    "tfidf_vectorizer.pkl"
+)
+
+CONFUSION_MATRIX_PATH = os.path.join(
+    BASE_DIR,
+    "confusion_matrix.png"
+)
 
 
 # =========================================================
 # 1. LOAD DATASET
 # =========================================================
 
-df = pd.read_csv("dataset.csv")
-
 print("\n==============================")
-print("DATASET")
+print("LOADING DATASET")
 print("==============================")
 
-print(df)
+print("Dataset:", DATASET_PATH)
+
+df = pd.read_csv(DATASET_PATH)
 
 print("\nDataset shape:")
 print(df.shape)
@@ -46,6 +76,9 @@ df = df.dropna(
     ]
 )
 
+print("\nRows after removing empty values:")
+print(len(df))
+
 
 # =========================================================
 # 3. INPUT AND OUTPUT
@@ -61,17 +94,12 @@ y = df["label"]
 # =========================================================
 
 X_train, X_test, y_train, y_test = train_test_split(
-
     X,
     y,
-
     test_size=0.2,
-
     random_state=42,
-
     stratify=y
 )
-
 
 print("\n==============================")
 print("TRAIN / TEST")
@@ -86,16 +114,11 @@ print("Testing samples :", len(X_test))
 # =========================================================
 
 vectorizer = TfidfVectorizer(
-
     lowercase=True,
-
     stop_words="english",
-
     max_features=5000,
-
-    ngram_range=(1, 2)
+    ngram_range=(1, 1)
 )
-
 
 X_train_tfidf = vectorizer.fit_transform(
     X_train
@@ -105,7 +128,6 @@ X_test_tfidf = vectorizer.transform(
     X_test
 )
 
-
 print("\n==============================")
 print("TF-IDF")
 print("==============================")
@@ -113,6 +135,11 @@ print("==============================")
 print(
     "Training TF-IDF shape:",
     X_train_tfidf.shape
+)
+
+print(
+    "Vocabulary size:",
+    len(vectorizer.vocabulary_)
 )
 
 
@@ -129,7 +156,11 @@ model = LogisticRegression(
 # 7. TRAIN MODEL
 # =========================================================
 
-print("\nTraining model...")
+print("\n==============================")
+print("TRAINING MODEL")
+print("==============================")
+
+print("Training model...")
 
 model.fit(
     X_train_tfidf,
@@ -216,8 +247,9 @@ print(
     )
 )
 
+
 # =========================================================
-# CONFUSION MATRIX
+# 11. CONFUSION MATRIX
 # =========================================================
 
 cm = confusion_matrix(
@@ -233,48 +265,150 @@ display = ConfusionMatrixDisplay(
 
 display.plot()
 
-plt.title("Resume Screening ML Model - Confusion Matrix")
+plt.title(
+    "Resume Screening ML Model - Confusion Matrix"
+)
 
 plt.tight_layout()
 
 plt.savefig(
-    "confusion_matrix.png",
+    CONFUSION_MATRIX_PATH,
     dpi=300
 )
 
-plt.show()
+plt.close()
 
 print("\nConfusion matrix saved:")
-print("confusion_matrix.png")
+print(CONFUSION_MATRIX_PATH)
+
 
 # =========================================================
-# 11. SAVE MODEL
+# 12. SAVE MODEL
 # =========================================================
 
 joblib.dump(
     model,
-    "resume_model.pkl"
+    MODEL_PATH
 )
 
-
 print("\nML model saved:")
-print("resume_model.pkl")
+print(MODEL_PATH)
 
 
 # =========================================================
-# 12. SAVE TF-IDF VECTORIZER
+# 13. SAVE TF-IDF VECTORIZER
 # =========================================================
 
 joblib.dump(
     vectorizer,
-    "tfidf_vectorizer.pkl"
+    VECTORIZER_PATH
+)
+
+print("\nTF-IDF vectorizer saved:")
+print(VECTORIZER_PATH)
+
+
+# =========================================================
+# 14. VERIFY SAVED MODEL
+# =========================================================
+
+print("\n==============================")
+print("VERIFYING SAVED MODEL")
+print("==============================")
+
+loaded_model = joblib.load(
+    MODEL_PATH
+)
+
+loaded_vectorizer = joblib.load(
+    VECTORIZER_PATH
+)
+
+print(
+    "Model type:",
+    type(loaded_model)
+)
+
+print(
+    "Model classes:",
+    loaded_model.classes_
+)
+
+print(
+    "Has predict:",
+    hasattr(loaded_model, "predict")
+)
+
+print(
+    "Has predict_proba:",
+    hasattr(loaded_model, "predict_proba")
+)
+
+print(
+    "Vectorizer vocabulary:",
+    len(loaded_vectorizer.vocabulary_)
 )
 
 
-print("\nTF-IDF vectorizer saved:")
-print("tfidf_vectorizer.pkl")
+# =========================================================
+# 15. TEST PREDICTION
+# =========================================================
 
+test_resume = """
+Python FastAPI SQL pandas NumPy machine learning
+React JavaScript Git Docker backend development
+"""
+
+test_vector = loaded_vectorizer.transform(
+    [test_resume]
+)
+
+test_prediction = loaded_model.predict(
+    test_vector
+)[0]
+
+test_probabilities = loaded_model.predict_proba(
+    test_vector
+)[0]
+
+test_confidence = max(
+    test_probabilities
+) * 100
+
+
+print("\n==============================")
+print("TEST PREDICTION")
+print("==============================")
+
+print(
+    "Prediction:",
+    test_prediction
+)
+
+print(
+    "Confidence:",
+    f"{test_confidence:.2f}%"
+)
+
+
+# =========================================================
+# 16. TRAINING COMPLETE
+# =========================================================
 
 print("\n==============================")
 print("TRAINING COMPLETE")
 print("==============================")
+
+print("Dataset:")
+print(DATASET_PATH)
+
+print("\nModel:")
+print(MODEL_PATH)
+
+print("\nVectorizer:")
+print(VECTORIZER_PATH)
+
+print("\nConfusion Matrix:")
+print(CONFUSION_MATRIX_PATH)
+
+print("\nML system is ready.")
